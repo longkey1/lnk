@@ -23,6 +23,7 @@ go.work
 
 # Build directory
 pkg/
+bin/
 
 # IDE specific files
 .idea/
