@@ -45,9 +45,9 @@ func getDefaultRemotePath() (string, error) {
 		}
 	}
 
-	// Check if we have enough components to go up the specified depth
+	// Adjust depth if we don't have enough components
 	if len(cleanComponents) < depth {
-		return "", fmt.Errorf("cannot go up %d depth from current directory (only %d depth available)", depth, len(cleanComponents))
+		depth = len(cleanComponents)
 	}
 
 	// Get the components for the remote path
@@ -60,7 +60,9 @@ func getDefaultRemotePath() (string, error) {
 	}
 
 	remoteComponents := cleanComponents[startIndex:]
-	return strings.Join(remoteComponents, string(os.PathSeparator)), nil
+
+	// Return absolute path by joining with root
+	return string(os.PathSeparator) + strings.Join(remoteComponents, string(os.PathSeparator)), nil
 }
 
 // initCmd represents the init command
