@@ -8,6 +8,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var (
+	remoteDir    string
+	createRemote bool
+)
+
 // initCmd represents the init command
 var initCmd = &cobra.Command{
 	Use:   "init",
@@ -18,7 +23,7 @@ This command will:
 - Create .lnk.toml configuration file if it doesn't exist
 - Add .lnk.toml to .git/info/exclude to prevent it from being tracked`,
 	Run: func(cmd *cobra.Command, args []string) {
-		if err := lnk.Init(); err != nil {
+		if err := lnk.Init(remoteDir, createRemote); err != nil {
 			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 			os.Exit(1)
 		}
@@ -27,4 +32,6 @@ This command will:
 
 func init() {
 	rootCmd.AddCommand(initCmd)
+	initCmd.Flags().StringVarP(&remoteDir, "remote", "r", "", "Remote directory to save in .lnk.toml")
+	initCmd.Flags().BoolVar(&createRemote, "create-remote", false, "Create remote directory if it does not exist")
 }

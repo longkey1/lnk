@@ -5,24 +5,9 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
-
-	"github.com/BurntSushi/toml"
 )
 
-// File represents a single file entry in the configuration
-type Link struct {
-	Path string `toml:"path"`
-	Type string `toml:"type"`
-}
-
-// Config represents the .lnk.toml configuration structure
-type Config struct {
-	Links []Link `toml:"links"`
-}
-
-// Add adds a file to the project configuration
-func Add(path string, recursive bool, linkType string) error {
-	// Validate link type
+func Add(path string, recursive bool, linkType string, sourceRemote bool) error {
 	if linkType != "hard" && linkType != "symbolic" {
 		return fmt.Errorf("invalid link type: %s. Must be 'hard' or 'symbolic'", linkType)
 	}
@@ -32,9 +17,28 @@ func Add(path string, recursive bool, linkType string) error {
 		return fmt.Errorf("path does not exist: %s", path)
 	}
 
+	if recursive && linkType == "symbolic" {
+		return fmt.Errorf("recursive option cannot be used with symbolic links")
+	}
+
+	if fi.IsDir() && !recursive && linkType == "hard" {
+		return fmt.Errorf("recursive option must be set when adding a directory with hard links")
+	}
+
 	config, err := loadConfig()
 	if err != nil {
 		return fmt.Errorf("failed to load configuration: %w", err)
+	}
+
+	// Determine base directory for relative paths
+	var baseDir string
+	if sourceRemote {
+		if config.Remote == "" {
+			return fmt.Errorf("remote directory not configured. Run 'lnk init --remote <path>' first")
+		}
+		baseDir = config.Remote
+	} else {
+		baseDir = config.Source
 	}
 
 	existing := make(map[string]struct{})
@@ -50,8 +54,13 @@ func Add(path string, recursive bool, linkType string) error {
 				return err
 			}
 			if info.IsDir() {
-				if _, ok := existing[p]; !ok {
-					targets = append(targets, p)
+				// Convert to relative path from base directory
+				relPath, err := filepath.Rel(baseDir, p)
+				if err != nil {
+					return fmt.Errorf("failed to get relative path: %w", err)
+				}
+				if _, ok := existing[relPath]; !ok {
+					targets = append(targets, relPath)
 				}
 			}
 			return nil
@@ -59,9 +68,17 @@ func Add(path string, recursive bool, linkType string) error {
 		if err != nil {
 			return fmt.Errorf("failed to walk directory: %w", err)
 		}
+		if len(targets) == 0 || (len(targets) == 1 && targets[0] == path) {
+			return fmt.Errorf("no files or directories to add under the specified directory")
+		}
 	} else {
-		if _, ok := existing[path]; !ok {
-			targets = append(targets, path)
+		// Convert to relative path from base directory
+		relPath, err := filepath.Rel(baseDir, path)
+		if err != nil {
+			return fmt.Errorf("failed to get relative path: %w", err)
+		}
+		if _, ok := existing[relPath]; !ok {
+			targets = append(targets, relPath)
 		}
 	}
 
@@ -75,59 +92,12 @@ func Add(path string, recursive bool, linkType string) error {
 		fmt.Printf("Added link: %s (type: %s)\n", t, linkType)
 	}
 
-	// pathで昇順ソート
 	sort.Slice(config.Links, func(i, j int) bool {
 		return config.Links[i].Path < config.Links[j].Path
 	})
 
 	if err := saveConfig(config); err != nil {
 		return fmt.Errorf("failed to save configuration: %w", err)
-	}
-
-	return nil
-}
-
-// loadConfig loads the configuration from .lnk.toml
-func loadConfig() (*Config, error) {
-	filename := ".lnk.toml"
-	config := &Config{}
-
-	// Check if file exists
-	if _, err := os.Stat(filename); os.IsNotExist(err) {
-		// Create empty config if file doesn't exist
-		return config, nil
-	}
-
-	// Read and parse existing file
-	content, err := os.ReadFile(filename)
-	if err != nil {
-		return nil, err
-	}
-
-	if len(content) > 0 {
-		if _, err := toml.Decode(string(content), config); err != nil {
-			return nil, err
-		}
-	}
-
-	return config, nil
-}
-
-// saveConfig saves the configuration to .lnk.toml
-func saveConfig(config *Config) error {
-	filename := ".lnk.toml"
-
-	// Create file
-	file, err := os.Create(filename)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	// Encode and write configuration
-	encoder := toml.NewEncoder(file)
-	if err := encoder.Encode(config); err != nil {
-		return err
 	}
 
 	return nil

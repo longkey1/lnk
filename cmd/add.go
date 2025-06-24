@@ -22,6 +22,7 @@ This command will:
 	Run: func(cmd *cobra.Command, args []string) {
 		recursive, _ := cmd.Flags().GetBool("recursive")
 		symbolic, _ := cmd.Flags().GetBool("symbolic")
+		sourceRemote, _ := cmd.Flags().GetBool("source-remote")
 		path := args[0]
 
 		linkType := "hard"
@@ -29,7 +30,7 @@ This command will:
 			linkType = "symbolic"
 		}
 
-		if err := lnk.Add(path, recursive, linkType); err != nil {
+		if err := lnk.Add(path, recursive, linkType, sourceRemote); err != nil {
 			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 			os.Exit(1)
 		}
@@ -42,4 +43,5 @@ func init() {
 	// Add flags
 	addCmd.Flags().BoolP("recursive", "r", false, "Add recursively (include subdirectories and files)")
 	addCmd.Flags().BoolP("symbolic", "s", false, "Create symbolic link (default: hard link)")
+	addCmd.Flags().Bool("source-remote", false, "Use remote directory as base for relative paths")
 }
