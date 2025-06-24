@@ -11,10 +11,11 @@ init: ## Initialize the project
 .PHONY: release
 
 # Get current version from git tag
-VERSION := $(shell git tag --sort=-v:refname | head -n1 2>/dev/null || echo "v0.0.0")
-MAJOR := $(shell echo $(VERSION) | cut -d. -f1 | tr -d 'v')
-MINOR := $(shell echo $(VERSION) | cut -d. -f2)
-PATCH := $(shell echo $(VERSION) | cut -d. -f3)
+CURRENT_VERSION := $(shell git tag --sort=-v:refname | head -n1 2>/dev/null | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$$' || echo "v0.0.0")
+VERSION := $(CURRENT_VERSION)
+MAJOR := $(shell echo $(VERSION) | cut -d. -f1 | tr -d 'v' | sed 's/^$$/0/')
+MINOR := $(shell echo $(VERSION) | cut -d. -f2 | sed 's/^$$/0/')
+PATCH := $(shell echo $(VERSION) | cut -d. -f3 | sed 's/^$$/0/')
 
 # Calculate next version based on release type
 define next_version
@@ -40,17 +41,17 @@ release: ## Release target with type argument. Usage: make release type=patch|mi
 		echo "Options:"; \
 		echo "  dryrun - Set to false to actually create and push the tag (default: true)"; \
 		echo ""; \
-		echo "Current version: $(VERSION)"; \
+		echo "Current version: $(CURRENT_VERSION)"; \
 		exit 0; \
 	elif [ "$(type)" = "patch" ] || [ "$(type)" = "minor" ] || [ "$(type)" = "major" ]; then \
 		NEXT_VERSION=$$(if [ "$(type)" = "patch" ]; then \
-			echo "v$(MAJOR).$(MINOR).$$(expr $(PATCH) + 1)"; \
+			echo "v$(MAJOR).$(MINOR).$$(($(PATCH) + 1))"; \
 		elif [ "$(type)" = "minor" ]; then \
-			echo "v$(MAJOR).$$(expr $(MINOR) + 1).0"; \
+			echo "v$(MAJOR).$$(($(MINOR) + 1)).0"; \
 		elif [ "$(type)" = "major" ]; then \
-			echo "v$$(expr $(MAJOR) + 1).0.0"; \
+			echo "v$$(($(MAJOR) + 1)).0.0"; \
 		fi); \
-		echo "Current version: $(VERSION)"; \
+		echo "Current version: $(CURRENT_VERSION)"; \
 		echo "Next version: $$NEXT_VERSION"; \
 		if [ "$(dryrun)" = "false" ]; then \
 			echo "Creating new tag $$NEXT_VERSION..."; \
