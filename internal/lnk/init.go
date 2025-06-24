@@ -137,13 +137,21 @@ func addToGitExclude() error {
 		}
 	}
 
-	// Append entry to file
+	// Append entry to file with comment markers
 	file, err := os.OpenFile(excludePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		return err
 	}
 	defer file.Close()
 
+	// Add comment markers and entry
+	if _, err := file.WriteString("\n"); err != nil {
+		return err
+	}
+	marker := "# lnk configuration file"
+	if _, err := file.WriteString(marker + "\n"); err != nil {
+		return err
+	}
 	if _, err := file.WriteString(entry + "\n"); err != nil {
 		return err
 	}
