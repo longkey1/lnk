@@ -45,6 +45,12 @@ This will:
 - Create a `.lnk.toml` configuration file
 - Add `.lnk.toml` to `.git/info/exclude` to prevent it from being tracked
 
+**Environment Variables:**
+- `LNK_REMOTE_DEPTH`: Controls how many directory levels to include in the default remote path (default: 2)
+  - Example: `/a/b/c` with `LNK_REMOTE_DEPTH=2` → `b/c`
+  - Example: `/a/b/c` with `LNK_REMOTE_DEPTH=1` → `c`
+  - Example: `/a/b/c/d` with `LNK_REMOTE_DEPTH=3` → `b/c/d`
+
 ### Adding Links
 
 Add files or directories to your link configuration:
