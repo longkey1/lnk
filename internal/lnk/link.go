@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 )
 
-func CreateLinks(sourceRemote bool) error {
+func CreateLinks(fromRemote bool) error {
 	config, err := loadConfig()
 	if err != nil {
 		return fmt.Errorf("failed to load configuration: %w", err)
@@ -19,7 +19,7 @@ func CreateLinks(sourceRemote bool) error {
 
 	// base directory for resolving link source
 	var baseDir string
-	if sourceRemote {
+	if fromRemote {
 		if config.Remote == "" {
 			return fmt.Errorf("remote directory not configured. Run 'lnk init --remote <path>' first")
 		}

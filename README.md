@@ -69,13 +69,13 @@ lnk add /path/to/file.txt --symbolic
 lnk add file.txt
 
 # Add using remote directory as base (relative paths)
-lnk add file.txt --source-remote
+lnk add file.txt --from-remote
 ```
 
 **Options:**
 - `--recursive, -r`: Add all subdirectories recursively
 - `--symbolic, -s`: Create symbolic link instead of hard link
-- `--source-remote`: Use remote directory as base for relative paths
+- `--from-remote`: Use remote directory as base for relative paths
 
 **Note:** 
 - `--recursive` and `--symbolic` cannot be used together
@@ -91,11 +91,11 @@ Create the actual links based on your configuration:
 lnk link
 
 # Create links using remote directory as base
-lnk link --source-remote
+lnk link --from-remote
 ```
 
 **Options:**
-- `--source-remote`: Use remote directory as base for link source paths
+- `--from-remote`: Use remote directory as base for link source paths
 
 ### Removing Links
 
@@ -188,11 +188,11 @@ lnk unlink
 lnk init --remote /backup/project
 
 # Add files using remote as base
-lnk add /backup/project/file1.txt --source-remote
-lnk add /backup/project/subdir/ --recursive --source-remote
+lnk add /backup/project/file1.txt --from-remote
+lnk add /backup/project/subdir/ --recursive --from-remote
 
 # Create links using remote as base
-lnk link --source-remote
+lnk link --from-remote
 ```
 
 ## Link Types

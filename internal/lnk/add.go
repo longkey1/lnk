@@ -7,7 +7,7 @@ import (
 	"sort"
 )
 
-func Add(path string, recursive bool, linkType string, sourceRemote bool) error {
+func Add(path string, recursive bool, linkType string, fromRemote bool) error {
 	if linkType != LinkTypeHard && linkType != LinkTypeSymbolic {
 		return fmt.Errorf("invalid link type: %s. Must be '%s' or '%s'", linkType, LinkTypeHard, LinkTypeSymbolic)
 	}
@@ -32,7 +32,7 @@ func Add(path string, recursive bool, linkType string, sourceRemote bool) error 
 
 	// Determine base directory for relative paths
 	var baseDir string
-	if sourceRemote {
+	if fromRemote {
 		if config.Remote == "" {
 			return fmt.Errorf("remote directory not configured. Run 'lnk init --remote <path>' first")
 		}
