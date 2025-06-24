@@ -45,6 +45,26 @@ This will:
 - Create a `.lnk.toml` configuration file
 - Add `.lnk.toml` to `.git/info/exclude` to prevent it from being tracked
 
+**Remote Path Behavior:**
+
+The `--remote` flag accepts both absolute and relative paths, and they behave differently:
+
+**Absolute Paths:**
+- When you specify an absolute path (e.g., `/backup/data`), it is used as-is
+- The path must exist unless `--create-remote` is specified
+- Example: `lnk init --remote /backup/project` → remote = `/backup/project`
+
+**Relative Paths:**
+- When you specify a relative path, it is resolved relative to the base directory
+- The base directory is determined by the `LNK_REMOTE_ROOT` environment variable
+- If `LNK_REMOTE_ROOT` is not set, it defaults to `$HOME/.config/lnk`
+- Example: `lnk init --remote myproject` with `LNK_REMOTE_ROOT=/backup` → remote = `/backup/myproject`
+
+**Default Remote Path (when --remote is not specified):**
+- Uses the `LNK_REMOTE_ROOT` environment variable as the base directory
+- Appends the project name (current directory name) to the base
+- Example: If current directory is `/workspace/myproject` and `LNK_REMOTE_ROOT=/backup`, the remote will be `/backup/myproject`
+
 **Environment Variables:**
 - `LNK_REMOTE_DEPTH`: Controls how many directory levels to include in the default remote path (default: 2)
   - Example: `/a/b/c` with `LNK_REMOTE_DEPTH=2` → `b/c`
