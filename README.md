@@ -8,8 +8,20 @@ A Link helper for managing hard links and symbolic links with configuration file
 
 ## Installation
 
+### From Source
+
 ```bash
 go build -o lnk .
+```
+
+### From Release
+
+You can download pre-built binaries from the [releases page](https://github.com/longkey1/lnk/releases).
+
+### Using go install
+
+```bash
+go install github.com/longkey1/lnk@latest
 ```
 
 ## Usage
