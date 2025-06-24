@@ -25,9 +25,9 @@ This command will:
 		sourceRemote, _ := cmd.Flags().GetBool("source-remote")
 		path := args[0]
 
-		linkType := "hard"
+		linkType := lnk.LinkTypeHard
 		if symbolic {
-			linkType = "symbolic"
+			linkType = lnk.LinkTypeSymbolic
 		}
 
 		if err := lnk.Add(path, recursive, linkType, sourceRemote); err != nil {

@@ -8,8 +8,8 @@ import (
 )
 
 func Add(path string, recursive bool, linkType string, sourceRemote bool) error {
-	if linkType != "hard" && linkType != "symbolic" {
-		return fmt.Errorf("invalid link type: %s. Must be 'hard' or 'symbolic'", linkType)
+	if linkType != LinkTypeHard && linkType != LinkTypeSymbolic {
+		return fmt.Errorf("invalid link type: %s. Must be '%s' or '%s'", linkType, LinkTypeHard, LinkTypeSymbolic)
 	}
 
 	fi, err := os.Stat(path)
@@ -17,11 +17,11 @@ func Add(path string, recursive bool, linkType string, sourceRemote bool) error 
 		return fmt.Errorf("path does not exist: %s", path)
 	}
 
-	if recursive && linkType == "symbolic" {
+	if recursive && linkType == LinkTypeSymbolic {
 		return fmt.Errorf("recursive option cannot be used with symbolic links")
 	}
 
-	if fi.IsDir() && !recursive && linkType == "hard" {
+	if fi.IsDir() && !recursive && linkType == LinkTypeHard {
 		return fmt.Errorf("recursive option must be set when adding a directory with hard links")
 	}
 

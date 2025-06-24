@@ -21,7 +21,7 @@ func Status() error {
 	}
 
 	if len(config.Links) == 0 {
-		fmt.Println("No links found in .lnk.toml")
+		fmt.Printf("No links found in %s\n", ConfigFileName)
 		return nil
 	}
 
@@ -91,13 +91,13 @@ func checkLinkStatus(link Link) LinkStatus {
 
 	status.Exists = true
 
-	if link.Type == "symbolic" {
+	if link.Type == LinkTypeSymbolic {
 		if info.Mode()&os.ModeSymlink != 0 {
 			status.IsLink = true
 		} else {
 			status.Error = "Not a symbolic link"
 		}
-	} else if link.Type == "hard" {
+	} else if link.Type == LinkTypeHard {
 		if info.IsDir() {
 			status.IsLink = true
 		} else {

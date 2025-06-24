@@ -6,6 +6,18 @@ import (
 	"github.com/BurntSushi/toml"
 )
 
+// Configuration file name constant
+const ConfigFileName = ".lnk.toml"
+
+// Git exclude file path constant
+const GitExcludePath = ".git/info/exclude"
+
+// Link type constants
+const (
+	LinkTypeHard     = "hard"
+	LinkTypeSymbolic = "symbolic"
+)
+
 type Link struct {
 	Path string `toml:"path"`
 	Type string `toml:"type"`
@@ -18,7 +30,7 @@ type Config struct {
 }
 
 func loadConfig() (*Config, error) {
-	filename := ".lnk.toml"
+	filename := ConfigFileName
 	config := &Config{}
 
 	if _, err := os.Stat(filename); os.IsNotExist(err) {
@@ -40,7 +52,7 @@ func loadConfig() (*Config, error) {
 }
 
 func saveConfig(config *Config) error {
-	filename := ".lnk.toml"
+	filename := ConfigFileName
 
 	file, err := os.Create(filename)
 	if err != nil {

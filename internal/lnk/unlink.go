@@ -13,7 +13,7 @@ func Unlink() error {
 	}
 
 	if len(config.Links) == 0 {
-		fmt.Println("No links found in .lnk.toml")
+		fmt.Printf("No links found in %s\n", ConfigFileName)
 		return nil
 	}
 
@@ -41,7 +41,7 @@ func removeLinkWithBase(link Link, baseDir string) error {
 	}
 
 	switch link.Type {
-	case "hard":
+	case LinkTypeHard:
 		info, err := os.Stat(linkAbs)
 		if err != nil {
 			return fmt.Errorf("failed to stat path: %w", err)
@@ -58,7 +58,7 @@ func removeLinkWithBase(link Link, baseDir string) error {
 			}
 			fmt.Printf("Removed hard link: %s\n", linkAbs)
 		}
-	case "symbolic":
+	case LinkTypeSymbolic:
 		if err := os.Remove(linkAbs); err != nil {
 			return fmt.Errorf("failed to remove symbolic link: %w", err)
 		}

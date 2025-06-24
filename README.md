@@ -198,3 +198,16 @@ lnk link --source-remote
 - Links are created relative to the source or remote directory
 - The configuration file is automatically excluded from git tracking
 - All paths in the configuration are stored as relative paths from the base directory
+
+## 環境変数: LNK_REMOTE_DEPTH
+
+`LNK_REMOTE_DEPTH`は、`lnk init`コマンド実行時にremoteディレクトリのデフォルト値を決定するための環境変数です。
+この値は「カレントディレクトリから何階層分のディレクトリ名をremoteパスに含めるか」を指定します。
+
+- デフォルト値: **2**（親ディレクトリ＋カレントディレクトリ）
+- 例:
+  - `/a/b/c` で `LNK_REMOTE_DEPTH=2` → `b/c`
+  - `/a/b/c` で `LNK_REMOTE_DEPTH=1` → `c`
+  - `/a/b/c/d` で `LNK_REMOTE_DEPTH=3` → `b/c/d`
+
+`LNK_REMOTE_DEPTH`を明示的に指定しない場合は、2が使用されます。

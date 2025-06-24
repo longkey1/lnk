@@ -13,7 +13,7 @@ func CreateLinks(sourceRemote bool) error {
 	}
 
 	if len(config.Links) == 0 {
-		fmt.Println("No links found in .lnk.toml")
+		fmt.Printf("No links found in %s\n", ConfigFileName)
 		return nil
 	}
 
@@ -56,7 +56,7 @@ func createLinkWithBase(link Link, baseDir string) error {
 	}
 
 	switch link.Type {
-	case "hard":
+	case LinkTypeHard:
 		if sourceInfo.IsDir() {
 			// For directories, create the directory
 			if err := os.MkdirAll(sourceAbs, sourceInfo.Mode()); err != nil {
@@ -70,7 +70,7 @@ func createLinkWithBase(link Link, baseDir string) error {
 			}
 			fmt.Printf("Created hard link: %s\n", sourceAbs)
 		}
-	case "symbolic":
+	case LinkTypeSymbolic:
 		// Create symbolic link
 		if err := os.Symlink(sourceAbs, sourceAbs); err != nil {
 			return fmt.Errorf("failed to create symbolic link: %w", err)

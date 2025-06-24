@@ -12,11 +12,11 @@ import (
 // Init performs the initialization tasks
 func Init(remote string, createRemote bool) error {
 	if err := createLnkTomlWithRemote(remote, createRemote); err != nil {
-		return fmt.Errorf("failed to create .lnk.toml: %w", err)
+		return fmt.Errorf("failed to create %s: %w", ConfigFileName, err)
 	}
 
 	if err := addToGitExclude(); err != nil {
-		return fmt.Errorf("failed to add to .git/info/exclude: %w", err)
+		return fmt.Errorf("failed to add to %s: %w", GitExcludePath, err)
 	}
 
 	fmt.Println("Project initialized successfully!")
@@ -25,7 +25,7 @@ func Init(remote string, createRemote bool) error {
 
 // createLnkTomlWithRemote creates the .lnk.toml file with remote if it doesn't exist
 func createLnkTomlWithRemote(remote string, createRemote bool) error {
-	filename := ".lnk.toml"
+	filename := ConfigFileName
 
 	// Get current directory as absolute path for source
 	currentDir, err := os.Getwd()
@@ -113,9 +113,9 @@ func createLnkTomlWithRemote(remote string, createRemote bool) error {
 
 // addToGitExclude adds .lnk.toml to .git/info/exclude
 func addToGitExclude() error {
-	excludePath := ".git/info/exclude"
+	excludePath := GitExcludePath
 	excludeDir := filepath.Dir(excludePath)
-	entry := ".lnk.toml"
+	entry := ConfigFileName
 
 	// Create .git/info directory if it doesn't exist
 	if err := os.MkdirAll(excludeDir, 0755); err != nil {

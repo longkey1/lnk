@@ -10,12 +10,12 @@ import (
 func Clean() error {
 	// Remove .lnk.toml file if it exists
 	if err := removeLnkToml(); err != nil {
-		return fmt.Errorf("failed to remove .lnk.toml: %w", err)
+		return fmt.Errorf("failed to remove %s: %w", ConfigFileName, err)
 	}
 
 	// Remove .lnk.toml from .git/info/exclude
 	if err := removeFromGitExclude(); err != nil {
-		return fmt.Errorf("failed to remove from .git/info/exclude: %w", err)
+		return fmt.Errorf("failed to remove from %s: %w", GitExcludePath, err)
 	}
 
 	fmt.Println("Cleanup completed successfully!")
@@ -24,7 +24,7 @@ func Clean() error {
 
 // removeLnkToml removes the .lnk.toml file if it exists
 func removeLnkToml() error {
-	filename := ".lnk.toml"
+	filename := ConfigFileName
 
 	// Check if file exists
 	if _, err := os.Stat(filename); os.IsNotExist(err) {
@@ -43,8 +43,8 @@ func removeLnkToml() error {
 
 // removeFromGitExclude removes .lnk.toml from .git/info/exclude
 func removeFromGitExclude() error {
-	excludePath := ".git/info/exclude"
-	entry := ".lnk.toml"
+	excludePath := GitExcludePath
+	entry := ConfigFileName
 
 	// Check if exclude file exists
 	if _, err := os.Stat(excludePath); os.IsNotExist(err) {
