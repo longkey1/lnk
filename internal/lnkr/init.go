@@ -10,8 +10,8 @@ import (
 )
 
 // Init performs the initialization tasks
-func Init(remote string, createRemote bool) error {
-	if err := createLnkTomlWithRemote(remote, createRemote); err != nil {
+func Init(remote string, createRemote bool, gitExcludePath string) error {
+	if err := createLnkTomlWithRemote(remote, createRemote, gitExcludePath); err != nil {
 		return fmt.Errorf("failed to create %s: %w", ConfigFileName, err)
 	}
 
@@ -24,7 +24,7 @@ func Init(remote string, createRemote bool) error {
 }
 
 // createLnkTomlWithRemote creates the .lnkr.toml file with remote if it doesn't exist
-func createLnkTomlWithRemote(remote string, createRemote bool) error {
+func createLnkTomlWithRemote(remote string, createRemote bool, gitExcludePath string) error {
 	filename := ConfigFileName
 
 	// Get current directory as absolute path for local
@@ -69,6 +69,11 @@ func createLnkTomlWithRemote(remote string, createRemote bool) error {
 			"links":  []map[string]string{},
 		}
 
+		// Add git_exclude_path if specified
+		if gitExcludePath != "" {
+			config["git_exclude_path"] = gitExcludePath
+		}
+
 		file, err := os.Create(filename)
 		if err != nil {
 			return fmt.Errorf("failed to create configuration file: %w", err)
@@ -99,6 +104,11 @@ func createLnkTomlWithRemote(remote string, createRemote bool) error {
 		config["local"] = currentDir
 		config["remote"] = remote
 
+		// Update git_exclude_path if specified
+		if gitExcludePath != "" {
+			config["git_exclude_path"] = gitExcludePath
+		}
+
 		file, err := os.Create(filename)
 		if err != nil {
 			return fmt.Errorf("failed to create configuration file: %w", err)
@@ -117,20 +127,26 @@ func createLnkTomlWithRemote(remote string, createRemote bool) error {
 
 // addToGitExclude adds .lnkr.toml to .git/info/exclude
 func addToGitExclude() error {
-	return addToGitExcludeWithSection(ConfigFileName, "lnkr configuration file")
+	return addToGitExcludeWithSection(ConfigFileName)
 }
 
 // addToGitExcludeWithSection adds entries to .git/info/exclude with section markers
-func addToGitExcludeWithSection(entry, sectionName string) error {
-	return addMultipleToGitExclude([]string{entry}, sectionName)
+func addToGitExcludeWithSection(entry string) error {
+	return addMultipleToGitExclude([]string{entry})
 }
 
 // addMultipleToGitExclude adds multiple entries to .git/info/exclude with section markers
-func addMultipleToGitExclude(entries []string, sectionName string) error {
-	excludePath := GitExcludePath
+func addMultipleToGitExclude(entries []string) error {
+	// Load config to get git exclude path
+	config, err := loadConfig()
+	if err != nil {
+		return fmt.Errorf("failed to load configuration: %w", err)
+	}
+
+	excludePath := config.GetGitExcludePath()
 	excludeDir := filepath.Dir(excludePath)
 
-	// Create .git/info directory if it doesn't exist
+	// Create directory if it doesn't exist
 	if err := os.MkdirAll(excludeDir, 0755); err != nil {
 		return err
 	}
@@ -145,8 +161,8 @@ func addMultipleToGitExclude(entries []string, sectionName string) error {
 	lines := strings.Split(string(content), "\n")
 	sectionStart := -1
 	sectionEnd := -1
-	sectionMarker := "# " + sectionName
-	endMarker := "# end " + sectionName
+	sectionMarker := GitExcludeSectionStart
+	endMarker := GitExcludeSectionEnd
 
 	for i, line := range lines {
 		if strings.TrimSpace(line) == sectionMarker {
@@ -165,11 +181,11 @@ func addMultipleToGitExclude(entries []string, sectionName string) error {
 
 	// Add new section at the end
 	lines = append(lines, "")
-	lines = append(lines, sectionMarker)
+	lines = append(lines, GitExcludeSectionStart)
 	for _, entry := range entries {
 		lines = append(lines, entry)
 	}
-	lines = append(lines, endMarker)
+	lines = append(lines, GitExcludeSectionEnd)
 
 	// Write back to file
 	file, err := os.Create(excludePath)

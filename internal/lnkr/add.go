@@ -100,6 +100,7 @@ func Add(path string, recursive bool, linkType string, fromRemote bool) error {
 		return nil
 	}
 
+	// Add links to config
 	for _, t := range targets {
 		config.Links = append(config.Links, Link{Path: t, Type: linkType})
 		fmt.Printf("Added link: %s (type: %s)\n", t, linkType)
@@ -111,6 +112,11 @@ func Add(path string, recursive bool, linkType string, fromRemote bool) error {
 
 	if err := saveConfig(config); err != nil {
 		return fmt.Errorf("failed to save configuration: %w", err)
+	}
+
+	// Add target paths to .git/info/exclude
+	if err := addTargetPathsToGitExclude(targets, fromRemote, config); err != nil {
+		fmt.Printf("Warning: failed to add target paths to .git/info/exclude: %v\n", err)
 	}
 
 	return nil
@@ -126,4 +132,45 @@ func addPathToTargets(absPath, baseDir string, existing map[string]struct{}, tar
 		*targets = append(*targets, relPath)
 	}
 	return nil
+}
+
+// addTargetPathsToGitExclude adds target paths of added links to .git/info/exclude
+func addTargetPathsToGitExclude(targetPaths []string, fromRemote bool, config *Config) error {
+	// Determine target directory based on fromRemote flag
+	var targetDir string
+	if fromRemote {
+		targetDir = config.Local
+	} else {
+		targetDir = config.Remote
+	}
+
+	// Build absolute target paths
+	var absoluteTargetPaths []string
+	for _, path := range targetPaths {
+		absoluteTargetPaths = append(absoluteTargetPaths, filepath.Join(targetDir, path))
+	}
+
+	// Convert absolute paths to relative paths for git exclude
+	currentDir, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+
+	var relativePaths []string
+	for _, path := range absoluteTargetPaths {
+		if filepath.IsAbs(path) {
+			relPath, err := filepath.Rel(currentDir, path)
+			if err != nil {
+				// If we can't get relative path, use the original path
+				relativePaths = append(relativePaths, path)
+			} else {
+				relativePaths = append(relativePaths, relPath)
+			}
+		} else {
+			relativePaths = append(relativePaths, path)
+		}
+	}
+
+	// Add to .git/info/exclude
+	return addMultipleToGitExclude(relativePaths)
 }

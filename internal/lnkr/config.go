@@ -14,6 +14,12 @@ const ConfigFileName = ".lnkr.toml"
 // Git exclude file path constant
 const GitExcludePath = ".git/info/exclude"
 
+// Git exclude section markers
+const (
+	GitExcludeSectionStart = "# LNKR"
+	GitExcludeSectionEnd   = "# LNKR END"
+)
+
 // Link type constants
 const (
 	LinkTypeHard     = "hard"
@@ -29,9 +35,10 @@ type Link struct {
 }
 
 type Config struct {
-	Local  string `toml:"local"`
-	Remote string `toml:"remote"`
-	Links  []Link `toml:"links"`
+	Local          string `toml:"local"`
+	Remote         string `toml:"remote"`
+	GitExcludePath string `toml:"git_exclude_path"`
+	Links          []Link `toml:"links"`
 }
 
 // GetDefaultRemotePath returns the default remote path based on base directory and remote directory
@@ -103,4 +110,12 @@ func saveConfig(config *Config) error {
 	}
 
 	return nil
+}
+
+// GetGitExcludePath returns the git exclude path from config or default value
+func (c *Config) GetGitExcludePath() string {
+	if c.GitExcludePath != "" {
+		return c.GitExcludePath
+	}
+	return GitExcludePath
 }

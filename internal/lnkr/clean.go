@@ -43,9 +43,18 @@ func removeLnkToml() error {
 
 // removeFromGitExclude removes .lnkr.toml from .git/info/exclude
 func removeFromGitExclude() error {
-	excludePath := GitExcludePath
-	entry := ConfigFileName
+	// Load config to get git exclude path
+	config, err := loadConfig()
+	if err != nil {
+		// If config doesn't exist, use default path
+		return removeFromGitExcludeWithPath(GitExcludePath, ConfigFileName)
+	}
 
+	return removeFromGitExcludeWithPath(config.GetGitExcludePath(), ConfigFileName)
+}
+
+// removeFromGitExcludeWithPath removes entries from a specific git exclude file
+func removeFromGitExcludeWithPath(excludePath, entry string) error {
 	// Check if exclude file exists
 	if _, err := os.Stat(excludePath); os.IsNotExist(err) {
 		fmt.Printf("%s does not exist\n", excludePath)
