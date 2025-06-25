@@ -67,21 +67,21 @@ The `--remote` flag accepts both absolute and relative paths, and they behave di
 
 **Relative Paths:**
 - When you specify a relative path, it is resolved relative to the base directory
-- The base directory is determined by the `LNK_REMOTE_ROOT` environment variable
-- If `LNK_REMOTE_ROOT` is not set, it defaults to `$HOME/.config/lnkr`
-- Example: `lnkr init --remote myproject` with `LNK_REMOTE_ROOT=/backup` → remote = `/backup/myproject`
+- The base directory is determined by the `LNKR_REMOTE_ROOT` environment variable
+- If `LNKR_REMOTE_ROOT` is not set, it defaults to `$HOME/.config/lnkr`
+- Example: `lnkr init --remote myproject` with `LNKR_REMOTE_ROOT=/backup` → remote = `/backup/myproject`
 
-**Default Remote Path (when --remote is not specified):**
-- Uses the `LNK_REMOTE_ROOT` environment variable as the base directory
-- Appends the project name (current directory name) to the base
-- Example: If current directory is `/workspace/myproject` and `LNK_REMOTE_ROOT=/backup`, the remote will be `/backup/myproject`
+**Relative Path Mode (default):**
+- Uses the `LNKR_REMOTE_ROOT` environment variable as the base directory
+- The remote path is constructed as `LNKR_REMOTE_ROOT/project-name`
+- Example: If current directory is `/workspace/myproject` and `LNKR_REMOTE_ROOT=/backup`, the remote will be `/backup/myproject`
 
 **Environment Variables:**
-- `LNK_REMOTE_DEPTH`: Controls how many directory levels to include in the default remote path (default: 2)
-  - Example: `/a/b/c` with `LNK_REMOTE_DEPTH=2` → `b/c`
-  - Example: `/a/b/c` with `LNK_REMOTE_DEPTH=1` → `c`
-  - Example: `/a/b/c/d` with `LNK_REMOTE_DEPTH=3` → `b/c/d`
-- `LNK_REMOTE_ROOT`: Base directory for remote paths (if set, uses `LNK_REMOTE_ROOT/project-name`)
+- `LNKR_REMOTE_DEPTH`: Controls how many directory levels to include in the default remote path (default: 2)
+- Example: `/a/b/c` with `LNKR_REMOTE_DEPTH=2` → `b/c`
+- Example: `/a/b/c` with `LNKR_REMOTE_DEPTH=1` → `c`
+- Example: `/a/b/c/d` with `LNKR_REMOTE_DEPTH=3` → `b/c/d`
+- `LNKR_REMOTE_ROOT`: Base directory for remote paths (if set, uses `LNKR_REMOTE_ROOT/project-name`)
 
 ### Adding Links
 
@@ -231,14 +231,14 @@ lnkr link --from-remote
 
 ```bash
 # Set environment variables
-export LNK_REMOTE_ROOT="/backup"
-export LNK_REMOTE_DEPTH=2
+export LNKR_REMOTE_ROOT="/backup"
+export LNKR_REMOTE_DEPTH=2
 
 # Initialize (will use /backup/project-name)
 lnkr init
 
 # Or initialize with custom depth
-LNK_REMOTE_DEPTH=1 lnkr init
+LNKR_REMOTE_DEPTH=1 lnkr init
 ```
 
 ## Link Types
@@ -258,19 +258,19 @@ LNK_REMOTE_DEPTH=1 lnkr init
 
 ## Environment Variables
 
-### LNK_REMOTE_DEPTH
+### LNKR_REMOTE_DEPTH
 Controls how many directory levels to include in the default remote path when initializing without specifying `--remote`.
 
 - **Default**: 2 (parent directory + current directory)
 - **Examples**:
-  - `/a/b/c` with `LNK_REMOTE_DEPTH=2` → `b/c`
-  - `/a/b/c` with `LNK_REMOTE_DEPTH=1` → `c`
-  - `/a/b/c/d` with `LNK_REMOTE_DEPTH=3` → `b/c/d`
+  - `/a/b/c` with `LNKR_REMOTE_DEPTH=2` → `b/c`
+  - `/a/b/c` with `LNKR_REMOTE_DEPTH=1` → `c`
+  - `/a/b/c/d` with `LNKR_REMOTE_DEPTH=3` → `b/c/d`
 
-### LNK_REMOTE_ROOT
-Base directory for remote paths. If set, the tool will use `LNK_REMOTE_ROOT/project-name` as the remote directory.
+### LNKR_REMOTE_ROOT
+Base directory for remote paths. If set, the tool will use `LNKR_REMOTE_ROOT/project-name` as the remote directory.
 
-- **Example**: If `LNK_REMOTE_ROOT=/backup` and current directory is `/workspace/myproject`, the remote will be `/backup/myproject`
+- **Example**: If `LNKR_REMOTE_ROOT=/backup` and current directory is `/workspace/myproject`, the remote will be `/backup/myproject`
 
 ## Notes
 

@@ -26,12 +26,12 @@ func Add(path string, recursive bool, linkType string, fromRemote bool) error {
 	var baseDir string
 	if fromRemote {
 		if config.Remote == "" {
-			return fmt.Errorf("remote directory not configured. Run 'lnk init --remote <path>' first")
+			return fmt.Errorf("remote directory not configured. Run 'lnkr init --remote <path>' first")
 		}
 		baseDir = config.Remote
 	} else {
 		if config.Local == "" {
-			return fmt.Errorf("local directory not configured. Run 'lnk init --local <path>' first")
+			return fmt.Errorf("local directory not configured. Run 'lnkr init --local <path>' first")
 		}
 		baseDir = config.Local
 	}

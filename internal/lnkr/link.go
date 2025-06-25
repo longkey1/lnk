@@ -17,12 +17,47 @@ func CreateLinks(fromRemote bool) error {
 		return nil
 	}
 
+	var createdLinks []string
 	for _, link := range config.Links {
 		if err := createLinkWithBase(link, fromRemote, config); err != nil {
 			fmt.Printf("Error creating link for %s: %v\n", link.Path, err)
 			continue
 		}
 		// If err is nil, the link was either created successfully or skipped with a warning
+		// Add the target path to the list of created links for git exclude
+		if fromRemote {
+			createdLinks = append(createdLinks, filepath.Join(config.Local, link.Path))
+		} else {
+			createdLinks = append(createdLinks, filepath.Join(config.Remote, link.Path))
+		}
+	}
+
+	// Add created links to .git/info/exclude
+	if len(createdLinks) > 0 {
+		// Convert absolute paths to relative paths for git exclude
+		currentDir, err := os.Getwd()
+		if err != nil {
+			fmt.Printf("Warning: failed to get current directory: %v\n", err)
+		} else {
+			var relativePaths []string
+			for _, path := range createdLinks {
+				if filepath.IsAbs(path) {
+					relPath, err := filepath.Rel(currentDir, path)
+					if err != nil {
+						// If we can't get relative path, use the original path
+						relativePaths = append(relativePaths, path)
+					} else {
+						relativePaths = append(relativePaths, relPath)
+					}
+				} else {
+					relativePaths = append(relativePaths, path)
+				}
+			}
+
+			if err := addMultipleToGitExclude(relativePaths, "lnkr created links"); err != nil {
+				fmt.Printf("Warning: failed to add links to .git/info/exclude: %v\n", err)
+			}
+		}
 	}
 
 	fmt.Println("Link creation completed.")

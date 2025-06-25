@@ -33,16 +33,16 @@ This command will:
 		}
 
 		// Get the number of depth to go up from environment variable, default to DefaultRemoteDepth
-		depthStr := os.Getenv("LNK_REMOTE_DEPTH")
+		depthStr := os.Getenv("LNKR_REMOTE_DEPTH")
 		depth := lnkr.DefaultRemoteDepth // default value
 		if depthStr != "" {
-			if parsedDepth, err := strconv.Atoi(depthStr); err == nil && parsedDepth >= 0 {
+			if parsedDepth, err := strconv.Atoi(depthStr); err == nil && parsedDepth > 0 {
 				depth = parsedDepth
 			}
 		}
 
 		// Get base directory for remote
-		baseDir := os.Getenv("LNK_REMOTE_ROOT")
+		baseDir := os.Getenv("LNKR_REMOTE_ROOT")
 		if baseDir == "" {
 			// Default to $HOME/.config/lnkr
 			homeDir, err := os.UserHomeDir()
@@ -55,7 +55,7 @@ This command will:
 
 		// Get remote directory from flag or default
 		if remoteDir == "" {
-			// Use lnk package function to get default remote path
+			// Use lnkr package function to get default remote path
 			remoteDir = lnkr.GetDefaultRemotePath(currentDir, baseDir, depth)
 		} else {
 			// If remoteDir is specified, make it absolute path based on baseDir
@@ -73,6 +73,6 @@ This command will:
 
 func init() {
 	rootCmd.AddCommand(initCmd)
-	initCmd.Flags().StringVarP(&remoteDir, "remote", "r", "", "Remote directory to save in .lnkr.toml (if not specified, uses LNK_REMOTE_ROOT/project-name or parent-dir/current-dir based on LNK_REMOTE_DEPTH)")
+	initCmd.Flags().StringVarP(&remoteDir, "remote", "r", "", "Remote directory to save in .lnkr.toml (if not specified, uses LNKR_REMOTE_ROOT/project-name or parent-dir/current-dir based on LNKR_REMOTE_DEPTH)")
 	initCmd.Flags().BoolVar(&withCreateRemote, "with-create-remote", false, "Create remote directory if it does not exist")
 }

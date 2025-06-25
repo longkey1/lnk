@@ -117,9 +117,18 @@ func createLnkTomlWithRemote(remote string, createRemote bool) error {
 
 // addToGitExclude adds .lnkr.toml to .git/info/exclude
 func addToGitExclude() error {
+	return addToGitExcludeWithSection(ConfigFileName, "lnkr configuration file")
+}
+
+// addToGitExcludeWithSection adds entries to .git/info/exclude with section markers
+func addToGitExcludeWithSection(entry, sectionName string) error {
+	return addMultipleToGitExclude([]string{entry}, sectionName)
+}
+
+// addMultipleToGitExclude adds multiple entries to .git/info/exclude with section markers
+func addMultipleToGitExclude(entries []string, sectionName string) error {
 	excludePath := GitExcludePath
 	excludeDir := filepath.Dir(excludePath)
-	entry := ConfigFileName
 
 	// Create .git/info directory if it doesn't exist
 	if err := os.MkdirAll(excludeDir, 0755); err != nil {
@@ -132,34 +141,52 @@ func addToGitExclude() error {
 		return err
 	}
 
-	// Check if entry already exists
+	// Check if section already exists
 	lines := strings.Split(string(content), "\n")
-	for _, line := range lines {
-		if strings.TrimSpace(line) == entry {
-			fmt.Printf("%s already exists in %s\n", entry, excludePath)
-			return nil
+	sectionStart := -1
+	sectionEnd := -1
+	sectionMarker := "# " + sectionName
+	endMarker := "# end " + sectionName
+
+	for i, line := range lines {
+		if strings.TrimSpace(line) == sectionMarker {
+			sectionStart = i
+		}
+		if sectionStart != -1 && strings.TrimSpace(line) == endMarker {
+			sectionEnd = i
+			break
 		}
 	}
 
-	// Append entry to file with comment markers
-	file, err := os.OpenFile(excludePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	// Remove existing section if it exists
+	if sectionStart != -1 && sectionEnd != -1 {
+		lines = append(lines[:sectionStart], lines[sectionEnd+1:]...)
+	}
+
+	// Add new section at the end
+	lines = append(lines, "")
+	lines = append(lines, sectionMarker)
+	for _, entry := range entries {
+		lines = append(lines, entry)
+	}
+	lines = append(lines, endMarker)
+
+	// Write back to file
+	file, err := os.Create(excludePath)
 	if err != nil {
 		return err
 	}
 	defer file.Close()
 
-	// Add comment markers and entry
-	if _, err := file.WriteString("\n"); err != nil {
-		return err
-	}
-	marker := "# lnkr configuration file"
-	if _, err := file.WriteString(marker + "\n"); err != nil {
-		return err
-	}
-	if _, err := file.WriteString(entry + "\n"); err != nil {
+	_, err = file.WriteString(strings.Join(lines, "\n"))
+	if err != nil {
 		return err
 	}
 
-	fmt.Printf("Added %s to %s\n", entry, excludePath)
+	if len(entries) == 1 {
+		fmt.Printf("Added %s to %s\n", entries[0], excludePath)
+	} else {
+		fmt.Printf("Added %d entries to %s\n", len(entries), excludePath)
+	}
 	return nil
 }
