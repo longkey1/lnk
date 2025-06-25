@@ -74,14 +74,13 @@ release: ## Release target with type argument. Usage: make release type=patch|mi
 			git tag -a $$NEXT_VERSION -m "Release of $$NEXT_VERSION"; \
 			git push origin $$NEXT_VERSION --no-verify --force-with-lease; \
 			echo "Tag $$NEXT_VERSION has been created and pushed"; \
-			echo "Running goreleaser to build and release..."; \
-			goreleaser release --clean; \
+			echo "GitHub Actions will build and release automatically"; \
 		else \
 			echo "[DRY RUN] Showing what would be done..."; \
 			echo "Would push to origin/master"; \
 			echo "Would create tag: $$NEXT_VERSION"; \
 			echo "Would push tag to origin: $$NEXT_VERSION"; \
-			echo "Would run goreleaser release"; \
+			echo "GitHub Actions would build and release automatically"; \
 			echo ""; \
 			echo "To execute this release, run:"; \
 			echo "  make release type=$(type) dryrun=false"; \
@@ -119,8 +118,7 @@ re-release: ## Rerelease target with tag argument. Usage: make re-release tag=<t
 		git tag -a "$$TAG" -m "Release $$TAG"; \
 		echo "Pushing tag to origin..."; \
 		git push origin "$$TAG" --no-verify --force-with-lease; \
-		echo "Recreating GitHub release with goreleaser..."; \
-		goreleaser release --clean; \
+		echo "GitHub Actions will build and release automatically"; \
 		echo "Done!"; \
 	else \
 		echo "[DRY RUN] Showing what would be done..."; \
@@ -129,7 +127,7 @@ re-release: ## Rerelease target with tag argument. Usage: make re-release tag=<t
 		echo "Would delete remote tag: $$TAG"; \
 		echo "Would create new tag at HEAD: $$TAG"; \
 		echo "Would push tag to origin: $$TAG"; \
-		echo "Would run goreleaser release"; \
+		echo "GitHub Actions would build and release automatically"; \
 		echo ""; \
 		echo "To execute this re-release, run:"; \
 		if [ -n "$(tag)" ]; then \
