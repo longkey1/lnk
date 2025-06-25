@@ -67,10 +67,10 @@ func Status() error {
 
 func getStatusText(status LinkStatus) string {
 	if !status.Exists {
-		return "NOT FOUND"
+		return "LINK NOT FOUND"
 	}
 	if status.Error != "" {
-		return "ERROR: " + status.Error
+		return status.Error
 	}
 	if status.IsLink {
 		return "LINKED"
@@ -84,11 +84,38 @@ func checkLinkStatus(link Link, config *Config) LinkStatus {
 		Type: link.Type,
 	}
 
+	// Validate config first
+	if config.Local == "" {
+		status.Error = "Local directory not configured"
+		return status
+	}
+	if config.Remote == "" {
+		status.Error = "Remote directory not configured"
+		return status
+	}
+
+	// Get absolute paths for local and remote directories
+	absLocal, err := filepath.Abs(config.Local)
+	if err != nil {
+		status.Error = fmt.Sprintf("Invalid local directory path: %v", err)
+		return status
+	}
+
+	absRemote, err := filepath.Abs(config.Remote)
+	if err != nil {
+		status.Error = fmt.Sprintf("Invalid remote directory path: %v", err)
+		return status
+	}
+
+	// Construct absolute paths for link and target
+	absLinkPath := filepath.Join(absLocal, link.Path)
+	absTargetPath := filepath.Join(absRemote, link.Path)
+
 	// Check if the link path exists
-	info, err := os.Stat(link.Path)
+	info, err := os.Stat(absLinkPath)
 	if os.IsNotExist(err) {
 		status.Exists = false
-		status.Error = "NOT FOUND"
+		status.Error = "LINK NOT FOUND"
 		return status
 	}
 
@@ -103,7 +130,7 @@ func checkLinkStatus(link Link, config *Config) LinkStatus {
 		}
 
 		// Get the target of the symbolic link
-		target, err := os.Readlink(link.Path)
+		target, err := os.Readlink(absLinkPath)
 		if err != nil {
 			status.Error = fmt.Sprintf("Cannot read link target: %v", err)
 			return status
@@ -111,14 +138,13 @@ func checkLinkStatus(link Link, config *Config) LinkStatus {
 
 		// Check if the target exists
 		if _, err := os.Stat(target); os.IsNotExist(err) {
-			status.Error = "Target does not exist"
+			status.Error = "TARGET NOT FOUND"
 			return status
 		}
 
 		// Check if the target path is correct (should point to remote location)
-		expectedTarget := getExpectedTargetPath(link.Path, config)
-		if target != expectedTarget {
-			status.Error = fmt.Sprintf("Wrong target: %s (expected: %s)", target, expectedTarget)
+		if target != absTargetPath {
+			status.Error = fmt.Sprintf("Wrong target: %s (expected: %s)", target, absTargetPath)
 			return status
 		}
 
@@ -131,17 +157,10 @@ func checkLinkStatus(link Link, config *Config) LinkStatus {
 			return status
 		}
 
-		// Get the expected target path
-		expectedTarget := getExpectedTargetPath(link.Path, config)
-		if expectedTarget == "" {
-			status.Error = "Cannot determine expected target path"
-			return status
-		}
-
 		// Check if the target file exists
-		targetInfo, err := os.Stat(expectedTarget)
+		targetInfo, err := os.Stat(absTargetPath)
 		if os.IsNotExist(err) {
-			status.Error = "Target file does not exist"
+			status.Error = "TARGET NOT FOUND"
 			return status
 		}
 		if err != nil {
@@ -173,17 +192,6 @@ func checkLinkStatus(link Link, config *Config) LinkStatus {
 	}
 
 	return status
-}
-
-func getExpectedTargetPath(linkPath string, config *Config) string {
-	// Get the relative path from the local directory
-	relPath, err := filepath.Rel(config.Local, linkPath)
-	if err != nil {
-		return ""
-	}
-
-	// Construct the expected target path in the remote directory
-	return filepath.Join(config.Remote, relPath)
 }
 
 func getInode(fileInfo os.FileInfo) uint64 {
