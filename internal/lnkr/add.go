@@ -47,10 +47,6 @@ func Add(path string, recursive bool, linkType string, fromRemote bool) error {
 		return fmt.Errorf("recursive option cannot be used with symbolic links")
 	}
 
-	if fi.IsDir() && !recursive && linkType == LinkTypeHard {
-		return fmt.Errorf("recursive option must be set when adding a directory with hard links")
-	}
-
 	existing := make(map[string]struct{})
 	for _, link := range config.Links {
 		existing[link.Path] = struct{}{}
@@ -58,39 +54,54 @@ func Add(path string, recursive bool, linkType string, fromRemote bool) error {
 
 	var targets []string
 
-	if recursive && fi.IsDir() && linkType == LinkTypeHard {
-		err := filepath.Walk(absPath, func(p string, info os.FileInfo, err error) error {
-			if err != nil {
-				return err
-			}
-			// Skip directories, only add files for hard links
-			if info.IsDir() {
-				return nil
-			}
-			// Convert to relative path from base directory
-			relPath, err := filepath.Rel(baseDir, p)
-			if err != nil {
-				return fmt.Errorf("failed to get relative path: %w", err)
-			}
-			if _, ok := existing[relPath]; !ok {
-				targets = append(targets, relPath)
-			}
-			return nil
-		})
-		if err != nil {
-			return fmt.Errorf("failed to walk directory: %w", err)
-		}
-		if len(targets) == 0 {
-			return fmt.Errorf("no files or directories to add under the specified directory")
-		}
-	} else {
-		// Convert to relative path from base directory
+	// Helper function to add a single path to targets
+	addPathToTargets := func(absPath string) error {
 		relPath, err := filepath.Rel(baseDir, absPath)
 		if err != nil {
 			return fmt.Errorf("failed to get relative path: %w", err)
 		}
 		if _, ok := existing[relPath]; !ok {
 			targets = append(targets, relPath)
+		}
+		return nil
+	}
+
+	// Handle symbolic link case
+	if linkType == LinkTypeSymbolic {
+		// Symbolic links can only handle single files/directories (no recursive)
+		if err := addPathToTargets(absPath); err != nil {
+			return err
+		}
+	} else {
+		// Handle hard link case
+		if fi.IsDir() {
+			// Directory with hard links requires recursive option
+			if !recursive {
+				return fmt.Errorf("recursive option must be set when adding a directory with hard links")
+			}
+
+			// Walk directory and add all files
+			err := filepath.Walk(absPath, func(p string, info os.FileInfo, err error) error {
+				if err != nil {
+					return err
+				}
+				// Skip directories, only add files for hard links
+				if info.IsDir() {
+					return nil
+				}
+				return addPathToTargets(p)
+			})
+			if err != nil {
+				return fmt.Errorf("failed to walk directory: %w", err)
+			}
+			if len(targets) == 0 {
+				return fmt.Errorf("no files or directories to add under the specified directory")
+			}
+		} else {
+			// Single file with hard links
+			if err := addPathToTargets(absPath); err != nil {
+				return err
+			}
 		}
 	}
 

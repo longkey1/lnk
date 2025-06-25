@@ -3,6 +3,7 @@ package lnkr
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -27,7 +28,7 @@ func Status() error {
 
 	var statuses []LinkStatus
 	for _, link := range config.Links {
-		status := checkLinkStatus(link)
+		status := checkLinkStatus(link, config)
 		statuses = append(statuses, status)
 	}
 
@@ -76,12 +77,13 @@ func getStatusText(status LinkStatus) string {
 	return "NOT LINKED"
 }
 
-func checkLinkStatus(link Link) LinkStatus {
+func checkLinkStatus(link Link, config *Config) LinkStatus {
 	status := LinkStatus{
 		Path: link.Path,
 		Type: link.Type,
 	}
 
+	// Check if the link path exists
 	info, err := os.Stat(link.Path)
 	if os.IsNotExist(err) {
 		status.Exists = false
@@ -91,19 +93,63 @@ func checkLinkStatus(link Link) LinkStatus {
 
 	status.Exists = true
 
-	if link.Type == LinkTypeSymbolic {
-		if info.Mode()&os.ModeSymlink != 0 {
-			status.IsLink = true
-		} else {
+	switch link.Type {
+	case LinkTypeSymbolic:
+		// Check if it's actually a symbolic link
+		if info.Mode()&os.ModeSymlink == 0 {
 			status.Error = "Not a symbolic link"
+			return status
 		}
-	} else if link.Type == LinkTypeHard {
+
+		// Get the target of the symbolic link
+		target, err := os.Readlink(link.Path)
+		if err != nil {
+			status.Error = fmt.Sprintf("Cannot read link target: %v", err)
+			return status
+		}
+
+		// Check if the target exists
+		if _, err := os.Stat(target); os.IsNotExist(err) {
+			status.Error = "Target does not exist"
+			return status
+		}
+
+		// Check if the target path is correct (should point to remote location)
+		expectedTarget := getExpectedTargetPath(link.Path, config)
+		if target != expectedTarget {
+			status.Error = fmt.Sprintf("Wrong target: %s (expected: %s)", target, expectedTarget)
+			return status
+		}
+
+		status.IsLink = true
+
+	case LinkTypeHard:
+		// For hard links, we need to check if the file has the same inode as the target
+		// This is a simplified check - in a real implementation, you might want to
+		// compare inodes or use more sophisticated methods
+
+		// Check if the file exists and is not a directory
 		if info.IsDir() {
-			status.IsLink = true
-		} else {
-			status.IsLink = true
+			status.Error = "Hard links cannot be created for directories"
+			return status
 		}
+
+		// For hard links, we'll consider it valid if the file exists
+		// In a more robust implementation, you might want to check if it's actually
+		// a hard link to the expected target by comparing inodes
+		status.IsLink = true
 	}
 
 	return status
+}
+
+func getExpectedTargetPath(linkPath string, config *Config) string {
+	// Get the relative path from the local directory
+	relPath, err := filepath.Rel(config.Local, linkPath)
+	if err != nil {
+		return ""
+	}
+
+	// Construct the expected target path in the remote directory
+	return filepath.Join(config.Remote, relPath)
 }
