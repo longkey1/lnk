@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/BurntSushi/toml"
@@ -170,6 +171,29 @@ func addMultipleToGitExclude(entries []string) error {
 		}
 	}
 
+	// Collect existing entries from the section
+	existingEntries := make(map[string]struct{})
+	if sectionStart != -1 && sectionEnd != -1 {
+		for i := sectionStart + 1; i < sectionEnd; i++ {
+			line := strings.TrimSpace(lines[i])
+			if line != "" && !strings.HasPrefix(line, "#") {
+				existingEntries[line] = struct{}{}
+			}
+		}
+	}
+
+	// Add new entries to existing ones
+	for _, entry := range entries {
+		existingEntries[entry] = struct{}{}
+	}
+
+	// Convert back to slice and sort
+	var allEntries []string
+	for entry := range existingEntries {
+		allEntries = append(allEntries, entry)
+	}
+	sort.Strings(allEntries)
+
 	// Remove existing section if it exists
 	if sectionStart != -1 && sectionEnd != -1 {
 		lines = append(lines[:sectionStart], lines[sectionEnd+1:]...)
@@ -177,7 +201,7 @@ func addMultipleToGitExclude(entries []string) error {
 
 	// Add new section at the end
 	lines = append(lines, GitExcludeSectionStart)
-	lines = append(lines, entries...)
+	lines = append(lines, allEntries...)
 	lines = append(lines, GitExcludeSectionEnd)
 
 	// Write back to file
