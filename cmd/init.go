@@ -65,6 +65,11 @@ This command will:
 			}
 		}
 
+		// Set default git exclude path if not specified
+		if gitExcludePath == "" {
+			gitExcludePath = lnkr.GitExcludePath
+		}
+
 		if err := lnkr.Init(remoteDir, withCreateRemote, gitExcludePath); err != nil {
 			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 			os.Exit(1)

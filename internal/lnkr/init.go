@@ -64,14 +64,10 @@ func createLnkTomlWithRemote(remote string, createRemote bool, gitExcludePath st
 	if _, err := os.Stat(filename); os.IsNotExist(err) {
 		// Create new configuration file
 		config := map[string]interface{}{
-			"local":  currentDir,
-			"remote": remote,
-			"links":  []map[string]string{},
-		}
-
-		// Add git_exclude_path if specified
-		if gitExcludePath != "" {
-			config["git_exclude_path"] = gitExcludePath
+			"local":            currentDir,
+			"remote":           remote,
+			"git_exclude_path": gitExcludePath,
+			"links":            []map[string]string{},
 		}
 
 		file, err := os.Create(filename)
@@ -104,8 +100,8 @@ func createLnkTomlWithRemote(remote string, createRemote bool, gitExcludePath st
 		config["local"] = currentDir
 		config["remote"] = remote
 
-		// Update git_exclude_path if specified
-		if gitExcludePath != "" {
+		// Set git_exclude_path if not already set
+		if _, exists := config["git_exclude_path"]; !exists {
 			config["git_exclude_path"] = gitExcludePath
 		}
 
