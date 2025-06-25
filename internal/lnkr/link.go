@@ -17,16 +17,8 @@ func CreateLinks(fromRemote bool) error {
 		return nil
 	}
 
-	// base directory for resolving link source
-	var baseDir string
-	if fromRemote {
-		if config.Remote == "" {
-			return fmt.Errorf("remote directory not configured. Run 'lnk init --remote <path>' first")
-		}
-		baseDir = config.Remote
-	} else {
-		baseDir = config.Source
-	}
+	// Use local directory as base for resolving link source
+	baseDir := config.Local
 
 	for _, link := range config.Links {
 		if err := createLinkWithBase(link, baseDir); err != nil {

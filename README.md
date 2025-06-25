@@ -86,7 +86,7 @@ lnkr add /path/to/directory --recursive
 # Add with symbolic link
 lnkr add /path/to/file.txt --symbolic
 
-# Add using source directory as base (relative paths)
+# Add using local directory as base (relative paths)
 lnkr add file.txt
 
 # Add using remote directory as base (relative paths)
@@ -108,7 +108,7 @@ lnkr add file.txt --from-remote
 Create the actual links based on your configuration:
 
 ```bash
-# Create links using source directory as base
+# Create links using local directory as base
 lnkr link
 
 # Create links using remote directory as base
@@ -116,7 +116,7 @@ lnkr link --from-remote
 ```
 
 **Options:**
-- `--from-remote`: Use remote directory as base for link source paths
+- `--from-remote`: Use remote directory as base for link local paths
 
 ### Removing Links
 
@@ -160,7 +160,7 @@ The configuration file uses TOML format:
 
 ```toml
 # Base directories
-source = "/workspace"
+local = "/workspace"
 remote = "/path/to/remote/directory"
 
 # Link definitions
@@ -174,7 +174,7 @@ type = "symbolic"
 ```
 
 **Fields:**
-- `source`: Source directory (where links will be created)
+- `local`: Local directory (where links will be created)
 - `remote`: Remote directory (alternative base for relative paths)
 - `links`: Array of link definitions
   - `path`: Relative path from base directory
@@ -264,6 +264,6 @@ Base directory for remote paths. If set, the tool will use `LNK_REMOTE_ROOT/proj
 ## Notes
 
 - The tool automatically sorts paths in the configuration file
-- Links are created relative to the source or remote directory
+- Links are created relative to the local or remote directory
 - The configuration file is automatically excluded from git tracking
 - All paths in the configuration are stored as relative paths from the base directory

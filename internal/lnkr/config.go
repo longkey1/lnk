@@ -29,7 +29,7 @@ type Link struct {
 }
 
 type Config struct {
-	Source string `toml:"source"`
+	Local  string `toml:"local"`
 	Remote string `toml:"remote"`
 	Links  []Link `toml:"links"`
 }

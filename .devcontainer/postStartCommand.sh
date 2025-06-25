@@ -1,2 +1,2 @@
 #!/bin/bash
-make build
+echo "Starting postStartCommand..."

@@ -27,7 +27,7 @@ func Init(remote string, createRemote bool) error {
 func createLnkTomlWithRemote(remote string, createRemote bool) error {
 	filename := ConfigFileName
 
-	// Get current directory as absolute path for source
+	// Get current directory as absolute path for local
 	currentDir, err := os.Getwd()
 	if err != nil {
 		return fmt.Errorf("failed to get current directory: %w", err)
@@ -60,54 +60,58 @@ func createLnkTomlWithRemote(remote string, createRemote bool) error {
 		}
 	}
 
-	if _, err := os.Stat(filename); err == nil {
-		// update remote if already exists
+	// Create .lnkr.toml file if it doesn't exist
+	if _, err := os.Stat(filename); os.IsNotExist(err) {
+		// Create new configuration file
+		config := map[string]interface{}{
+			"local":  currentDir,
+			"remote": remote,
+			"links":  []map[string]string{},
+		}
+
+		file, err := os.Create(filename)
+		if err != nil {
+			return fmt.Errorf("failed to create configuration file: %w", err)
+		}
+		defer file.Close()
+
+		encoder := toml.NewEncoder(file)
+		if err := encoder.Encode(config); err != nil {
+			return fmt.Errorf("failed to encode configuration: %w", err)
+		}
+
+		fmt.Printf("Created %s with local and remote directories\n", filename)
+	} else {
+		// Update existing configuration file
 		content, err := os.ReadFile(filename)
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to read configuration file: %w", err)
 		}
+
 		var config map[string]interface{}
 		if len(content) > 0 {
 			if _, err := toml.Decode(string(content), &config); err != nil {
-				return err
+				return fmt.Errorf("failed to decode configuration: %w", err)
 			}
 		}
-		// Always update source and remote
-		config["source"] = currentDir
-		if remote != "" {
-			config["remote"] = remote
-		}
+
+		// Always update local and remote
+		config["local"] = currentDir
+		config["remote"] = remote
+
 		file, err := os.Create(filename)
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to create configuration file: %w", err)
 		}
 		defer file.Close()
+
 		encoder := toml.NewEncoder(file)
 		if err := encoder.Encode(config); err != nil {
-			return err
+			return fmt.Errorf("failed to encode configuration: %w", err)
 		}
-		fmt.Printf("Updated source and remote in %s\n", filename)
-		return nil
-	}
 
-	file, err := os.Create(filename)
-	if err != nil {
-		return err
+		fmt.Printf("Updated local and remote in %s\n", filename)
 	}
-	defer file.Close()
-
-	config := map[string]interface{}{
-		"source": currentDir,
-	}
-	if remote != "" {
-		config["remote"] = remote
-	}
-	encoder := toml.NewEncoder(file)
-	if err := encoder.Encode(config); err != nil {
-		return err
-	}
-
-	fmt.Printf("Created %s\n", filename)
 	return nil
 }
 

@@ -25,5 +25,5 @@ var linkCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(linkCmd)
-	linkCmd.Flags().Bool("from-remote", false, "Use remote directory as base for link source paths")
+	linkCmd.Flags().Bool("from-remote", false, "Use remote directory as base for link local paths")
 }

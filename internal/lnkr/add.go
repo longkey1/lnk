@@ -30,10 +30,10 @@ func Add(path string, recursive bool, linkType string, fromRemote bool) error {
 		}
 		baseDir = config.Remote
 	} else {
-		if config.Source == "" {
-			return fmt.Errorf("source directory not configured. Run 'lnk init --source <path>' first")
+		if config.Local == "" {
+			return fmt.Errorf("local directory not configured. Run 'lnk init --local <path>' first")
 		}
-		baseDir = config.Source
+		baseDir = config.Local
 	}
 
 	// Build absolute path and check if file exists

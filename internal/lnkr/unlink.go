@@ -17,8 +17,8 @@ func Unlink() error {
 		return nil
 	}
 
-	// Use source directory as base for resolving link paths
-	baseDir := config.Source
+	// Use local directory as base for resolving link paths
+	baseDir := config.Local
 
 	for _, link := range config.Links {
 		if err := removeLinkWithBase(link, baseDir); err != nil {
