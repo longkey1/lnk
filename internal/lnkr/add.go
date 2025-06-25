@@ -47,6 +47,7 @@ func Add(path string, recursive bool, linkType string, fromRemote bool) error {
 		return fmt.Errorf("recursive option cannot be used with symbolic links")
 	}
 
+	// Check existing links to avoid duplicates
 	existing := make(map[string]struct{})
 	for _, link := range config.Links {
 		existing[link.Path] = struct{}{}
@@ -54,44 +55,36 @@ func Add(path string, recursive bool, linkType string, fromRemote bool) error {
 
 	var targets []string
 
-	// Add a single path to targets
-	if err := addPathToTargets(absPath, baseDir, existing, &targets); err != nil {
-		return err
-	}
+	// Add paths based on type and recursive flag
+	if fi.IsDir() {
+		if linkType == LinkTypeHard && !recursive {
+			return fmt.Errorf("recursive option must be set when adding a directory with hard links")
+		}
 
-	// Handle symbolic link case
-	if linkType == LinkTypeSymbolic {
-		// Symbolic links can only handle single files/directories (no recursive)
-	} else {
-		// Handle hard link case
-		if fi.IsDir() {
-			// Directory with hard links requires recursive option
-			if !recursive {
-				return fmt.Errorf("recursive option must be set when adding a directory with hard links")
-			}
-
-			// Walk directory and add all files
+		if linkType == LinkTypeHard {
+			// Walk directory and add all files for hard links
 			err := filepath.Walk(absPath, func(p string, info os.FileInfo, err error) error {
 				if err != nil {
 					return err
 				}
-				// Skip directories, only add files for hard links
-				if info.IsDir() {
-					return nil
+				if !info.IsDir() {
+					return addPathToTargets(p, baseDir, existing, &targets)
 				}
-				return addPathToTargets(p, baseDir, existing, &targets)
+				return nil
 			})
 			if err != nil {
 				return fmt.Errorf("failed to walk directory: %w", err)
 			}
-			if len(targets) == 0 {
-				return fmt.Errorf("no files or directories to add under the specified directory")
-			}
 		} else {
-			// Single file with hard links
+			// Add directory itself for symbolic links
 			if err := addPathToTargets(absPath, baseDir, existing, &targets); err != nil {
 				return err
 			}
+		}
+	} else {
+		// Add single file
+		if err := addPathToTargets(absPath, baseDir, existing, &targets); err != nil {
+			return err
 		}
 	}
 
