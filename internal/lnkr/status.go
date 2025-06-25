@@ -100,13 +100,7 @@ func checkLinkStatus(link Link, config *Config) LinkStatus {
 		return status
 	}
 
-	// Get absolute paths for local and remote directories
-	absLocal, err := filepath.Abs(config.Local)
-	if err != nil {
-		status.Error = fmt.Sprintf("Invalid local directory path: %v", err)
-		return status
-	}
-
+	// Get absolute path for remote directory
 	absRemote, err := filepath.Abs(config.Remote)
 	if err != nil {
 		status.Error = fmt.Sprintf("Invalid remote directory path: %v", err)
@@ -114,7 +108,7 @@ func checkLinkStatus(link Link, config *Config) LinkStatus {
 	}
 
 	// Set the full paths
-	status.LocalPath = filepath.Join(absLocal, link.Path)
+	status.LocalPath = link.Path
 	status.RemotePath = filepath.Join(absRemote, link.Path)
 
 	// Check if the link path exists
