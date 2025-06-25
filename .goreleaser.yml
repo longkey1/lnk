@@ -24,9 +24,9 @@ builds:
         goarm: "6"
     ldflags:
       - -s -w
-      - -X github.com/longkey1/lnk/internal/version.Version={{.Version}}
-      - -X github.com/longkey1/lnk/internal/version.CommitSHA={{.Commit}}
-      - -X github.com/longkey1/lnk/internal/version.BuildTime={{.Date}}
+      - -X github.com/longkey1/lnkr/internal/version.Version={{.Version}}
+      - -X github.com/longkey1/lnkr/internal/version.CommitSHA={{.Commit}}
+      - -X github.com/longkey1/lnkr/internal/version.BuildTime={{.Date}}
 
 archives:
   - format: tar.gz

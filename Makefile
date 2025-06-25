@@ -12,20 +12,25 @@ init: ## Initialize the project
 build: ## Build the application
 	go build -o bin/lnkr .
 
-.PHONY: build-release
-build-release: ## Build the application with version information embedded
-	@if [ -z "$(BUILD_VERSION)" ]; then \
-		echo "Error: BUILD_VERSION is required. Usage: make build-release BUILD_VERSION=v1.0.0"; \
-		exit 1; \
-	fi
-	@echo "Building version $(BUILD_VERSION)..."
+.PHONY: build-dev
+build-dev: ## Build the application with development version info
 	@COMMIT_SHA=$$(git rev-parse --short HEAD 2>/dev/null || echo "unknown"); \
 	BUILD_TIME=$$(date -u '+%Y-%m-%dT%H:%M:%SZ'); \
-	LDFLAGS="-X github.com/longkey1/lnkr/internal/version.Version=$(BUILD_VERSION) -X github.com/longkey1/lnkr/internal/version.CommitSHA=$$COMMIT_SHA -X github.com/longkey1/lnkr/internal/version.BuildTime=$$BUILD_TIME"; \
-	go build -ldflags "$$LDFLAGS" -o bin/lnkr-$(BUILD_VERSION) .
-	@echo "Built: bin/lnkr-$(BUILD_VERSION)"
+	LDFLAGS="-X github.com/longkey1/lnkr/internal/version.Version=dev -X github.com/longkey1/lnkr/internal/version.CommitSHA=$$COMMIT_SHA -X github.com/longkey1/lnkr/internal/version.BuildTime=$$BUILD_TIME"; \
+	go build -ldflags "$$LDFLAGS" -o bin/lnkr .
 
-.PHONY: release
+.PHONY: test
+test: ## Run tests
+	go test -v ./...
+
+.PHONY: lint
+lint: ## Run linter
+	golangci-lint run
+
+.PHONY: clean
+clean: ## Clean build artifacts
+	rm -rf bin/
+	rm -rf dist/
 
 # Get current version from git tag
 CURRENT_VERSION := $(shell git tag --sort=-v:refname | head -n1 2>/dev/null | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$$' || echo "v0.0.0")
@@ -34,18 +39,11 @@ MAJOR := $(shell echo $(VERSION) | cut -d. -f1 | tr -d 'v' | sed 's/^$$/0/')
 MINOR := $(shell echo $(VERSION) | cut -d. -f2 | sed 's/^$$/0/')
 PATCH := $(shell echo $(VERSION) | cut -d. -f3 | sed 's/^$$/0/')
 
-# Calculate next version based on release type
-define next_version
-$(if $(filter patch,$1),v$(MAJOR).$(MINOR).$(shell expr $(PATCH) + 1),\
-$(if $(filter minor,$1),v$(MAJOR).$(shell expr $(MINOR) + 1).0,\
-$(if $(filter major,$1),v$(shell expr $(MAJOR) + 1).0.0,\
-v$(MAJOR).$(MINOR).$(shell expr $(PATCH) + 1))))
-endef
-
 # Variables for release target
 dryrun ?= true
 type ?=
 
+.PHONY: release
 release: ## Release target with type argument. Usage: make release type=patch|minor|major dryrun=false
 	@if [ "$(type)" = "" ]; then \
 		echo "Usage: make release type=<type> [dryrun=false]"; \
@@ -76,12 +74,14 @@ release: ## Release target with type argument. Usage: make release type=patch|mi
 			git tag -a $$NEXT_VERSION -m "Release of $$NEXT_VERSION"; \
 			git push origin $$NEXT_VERSION --no-verify --force-with-lease; \
 			echo "Tag $$NEXT_VERSION has been created and pushed"; \
-			echo "GitHub Actions will build the release binary automatically"; \
+			echo "Running goreleaser to build and release..."; \
+			goreleaser release --clean; \
 		else \
 			echo "[DRY RUN] Showing what would be done..."; \
 			echo "Would push to origin/master"; \
 			echo "Would create tag: $$NEXT_VERSION"; \
 			echo "Would push tag to origin: $$NEXT_VERSION"; \
+			echo "Would run goreleaser release"; \
 			echo ""; \
 			echo "To execute this release, run:"; \
 			echo "  make release type=$(type) dryrun=false"; \
@@ -119,9 +119,8 @@ re-release: ## Rerelease target with tag argument. Usage: make re-release tag=<t
 		git tag -a "$$TAG" -m "Release $$TAG"; \
 		echo "Pushing tag to origin..."; \
 		git push origin "$$TAG" --no-verify --force-with-lease; \
-		echo "Recreating GitHub release..."; \
-		gh release create "$$TAG" --title "$$TAG" --notes "Re-release of $$TAG"; \
-		echo "GitHub Actions will build the release binary automatically"; \
+		echo "Recreating GitHub release with goreleaser..."; \
+		goreleaser release --clean; \
 		echo "Done!"; \
 	else \
 		echo "[DRY RUN] Showing what would be done..."; \
@@ -130,7 +129,7 @@ re-release: ## Rerelease target with tag argument. Usage: make re-release tag=<t
 		echo "Would delete remote tag: $$TAG"; \
 		echo "Would create new tag at HEAD: $$TAG"; \
 		echo "Would push tag to origin: $$TAG"; \
-		echo "Would create new release for: $$TAG"; \
+		echo "Would run goreleaser release"; \
 		echo ""; \
 		echo "To execute this re-release, run:"; \
 		if [ -n "$(tag)" ]; then \
@@ -140,6 +139,18 @@ re-release: ## Rerelease target with tag argument. Usage: make re-release tag=<t
 		fi; \
 		echo "Dry run complete."; \
 	fi
+
+.PHONY: release-dry-run
+release-dry-run: ## Run goreleaser in dry-run mode
+	goreleaser release --snapshot --clean --skip-publish
+
+.PHONY: release-snapshot
+release-snapshot: ## Create a snapshot release
+	goreleaser release --snapshot --clean --skip-publish
+
+.PHONY: install
+install: ## Install goreleaser
+	go install github.com/goreleaser/goreleaser@latest
 
 .PHONY: help
 help:
