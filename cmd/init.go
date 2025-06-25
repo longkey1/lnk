@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strconv"
 
-	"github.com/longkey1/lnkr/internal/lnk"
+	"github.com/longkey1/lnkr/internal/lnkr"
 	"github.com/spf13/cobra"
 )
 
@@ -34,7 +34,7 @@ This command will:
 
 		// Get the number of depth to go up from environment variable, default to DefaultRemoteDepth
 		depthStr := os.Getenv("LNK_REMOTE_DEPTH")
-		depth := lnk.DefaultRemoteDepth // default value
+		depth := lnkr.DefaultRemoteDepth // default value
 		if depthStr != "" {
 			if parsedDepth, err := strconv.Atoi(depthStr); err == nil && parsedDepth >= 0 {
 				depth = parsedDepth
@@ -56,7 +56,7 @@ This command will:
 		// Get remote directory from flag or default
 		if remoteDir == "" {
 			// Use lnk package function to get default remote path
-			remoteDir = lnk.GetDefaultRemotePath(currentDir, baseDir, depth)
+			remoteDir = lnkr.GetDefaultRemotePath(currentDir, baseDir, depth)
 		} else {
 			// If remoteDir is specified, make it absolute path based on baseDir
 			if !filepath.IsAbs(remoteDir) {
@@ -64,7 +64,7 @@ This command will:
 			}
 		}
 
-		if err := lnk.Init(remoteDir, withCreateRemote); err != nil {
+		if err := lnkr.Init(remoteDir, withCreateRemote); err != nil {
 			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 			os.Exit(1)
 		}

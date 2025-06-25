@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/longkey1/lnkr/internal/lnk"
+	"github.com/longkey1/lnkr/internal/lnkr"
 	"github.com/spf13/cobra"
 )
 
@@ -25,12 +25,12 @@ This command will:
 		fromRemote, _ := cmd.Flags().GetBool("from-remote")
 		path := args[0]
 
-		linkType := lnk.LinkTypeHard
+		linkType := lnkr.LinkTypeHard
 		if symbolic {
-			linkType = lnk.LinkTypeSymbolic
+			linkType = lnkr.LinkTypeSymbolic
 		}
 
-		if err := lnk.Add(path, recursive, linkType, fromRemote); err != nil {
+		if err := lnkr.Add(path, recursive, linkType, fromRemote); err != nil {
 			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 			os.Exit(1)
 		}

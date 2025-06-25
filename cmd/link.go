@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/longkey1/lnkr/internal/lnk"
+	"github.com/longkey1/lnkr/internal/lnkr"
 	"github.com/spf13/cobra"
 )
 
@@ -16,7 +16,7 @@ var linkCmd = &cobra.Command{
 	Long:  `Create hard links, symbolic links, or directories based on the .lnkr.toml configuration file.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fromRemote, _ := cmd.Flags().GetBool("from-remote")
-		if err := lnk.CreateLinks(fromRemote); err != nil {
+		if err := lnkr.CreateLinks(fromRemote); err != nil {
 			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 			os.Exit(1)
 		}

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/longkey1/lnkr/internal/lnk"
+	"github.com/longkey1/lnkr/internal/lnkr"
 	"github.com/spf13/cobra"
 )
 
@@ -18,7 +18,7 @@ This command will:
 - Remove .lnkr.toml configuration file if it exists
 - Remove .lnkr.toml entry from .git/info/exclude`,
 	Run: func(cmd *cobra.Command, args []string) {
-		if err := lnk.Clean(); err != nil {
+		if err := lnkr.Clean(); err != nil {
 			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 			os.Exit(1)
 		}

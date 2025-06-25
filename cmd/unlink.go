@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/longkey1/lnkr/internal/lnk"
+	"github.com/longkey1/lnkr/internal/lnkr"
 	"github.com/spf13/cobra"
 )
 
@@ -13,7 +13,7 @@ var unlinkCmd = &cobra.Command{
 	Short: "Remove links based on .lnkr.toml configuration",
 	Long:  `Remove hard links, symbolic links, or directories based on the .lnkr.toml configuration file.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		if err := lnk.Unlink(); err != nil {
+		if err := lnkr.Unlink(); err != nil {
 			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 			os.Exit(1)
 		}

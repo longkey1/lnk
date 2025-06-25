@@ -1,4 +1,4 @@
-package lnk
+package lnkr
 
 import (
 	"fmt"
@@ -12,17 +12,9 @@ func Add(path string, recursive bool, linkType string, fromRemote bool) error {
 		return fmt.Errorf("invalid link type: %s. Must be '%s' or '%s'", linkType, LinkTypeHard, LinkTypeSymbolic)
 	}
 
-	fi, err := os.Stat(path)
-	if os.IsNotExist(err) {
-		return fmt.Errorf("path does not exist: %s", path)
-	}
-
-	if recursive && linkType == LinkTypeSymbolic {
-		return fmt.Errorf("recursive option cannot be used with symbolic links")
-	}
-
-	if fi.IsDir() && !recursive && linkType == LinkTypeHard {
-		return fmt.Errorf("recursive option must be set when adding a directory with hard links")
+	// Check if path is absolute
+	if filepath.IsAbs(path) {
+		return fmt.Errorf("absolute path is not allowed: %s. Please use relative path", path)
 	}
 
 	config, err := loadConfig()
@@ -38,7 +30,25 @@ func Add(path string, recursive bool, linkType string, fromRemote bool) error {
 		}
 		baseDir = config.Remote
 	} else {
+		if config.Source == "" {
+			return fmt.Errorf("source directory not configured. Run 'lnk init --source <path>' first")
+		}
 		baseDir = config.Source
+	}
+
+	// Build absolute path and check if file exists
+	absPath := filepath.Join(baseDir, path)
+	fi, err := os.Stat(absPath)
+	if os.IsNotExist(err) {
+		return fmt.Errorf("path does not exist: %s", absPath)
+	}
+
+	if recursive && linkType == LinkTypeSymbolic {
+		return fmt.Errorf("recursive option cannot be used with symbolic links")
+	}
+
+	if fi.IsDir() && !recursive && linkType == LinkTypeHard {
+		return fmt.Errorf("recursive option must be set when adding a directory with hard links")
 	}
 
 	existing := make(map[string]struct{})
@@ -49,7 +59,7 @@ func Add(path string, recursive bool, linkType string, fromRemote bool) error {
 	var targets []string
 
 	if recursive && fi.IsDir() {
-		err := filepath.Walk(path, func(p string, info os.FileInfo, err error) error {
+		err := filepath.Walk(absPath, func(p string, info os.FileInfo, err error) error {
 			if err != nil {
 				return err
 			}
@@ -73,7 +83,7 @@ func Add(path string, recursive bool, linkType string, fromRemote bool) error {
 		}
 	} else {
 		// Convert to relative path from base directory
-		relPath, err := filepath.Rel(baseDir, path)
+		relPath, err := filepath.Rel(baseDir, absPath)
 		if err != nil {
 			return fmt.Errorf("failed to get relative path: %w", err)
 		}

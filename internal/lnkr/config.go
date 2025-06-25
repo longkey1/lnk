@@ -1,4 +1,4 @@
-package lnk
+package lnkr
 
 import (
 	"os"

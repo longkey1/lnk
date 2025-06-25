@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/longkey1/lnkr/internal/lnk"
+	"github.com/longkey1/lnkr/internal/lnkr"
 	"github.com/spf13/cobra"
 )
 
@@ -13,7 +13,7 @@ var statusCmd = &cobra.Command{
 	Short: "Show status of links in .lnkr.toml configuration",
 	Long:  `Show the status of all links defined in the .lnkr.toml configuration file.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		if err := lnk.Status(); err != nil {
+		if err := lnkr.Status(); err != nil {
 			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 			os.Exit(1)
 		}
