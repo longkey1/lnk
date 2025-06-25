@@ -54,24 +54,14 @@ func Add(path string, recursive bool, linkType string, fromRemote bool) error {
 
 	var targets []string
 
-	// Helper function to add a single path to targets
-	addPathToTargets := func(absPath string) error {
-		relPath, err := filepath.Rel(baseDir, absPath)
-		if err != nil {
-			return fmt.Errorf("failed to get relative path: %w", err)
-		}
-		if _, ok := existing[relPath]; !ok {
-			targets = append(targets, relPath)
-		}
-		return nil
+	// Add a single path to targets
+	if err := addPathToTargets(absPath, baseDir, existing, &targets); err != nil {
+		return err
 	}
 
 	// Handle symbolic link case
 	if linkType == LinkTypeSymbolic {
 		// Symbolic links can only handle single files/directories (no recursive)
-		if err := addPathToTargets(absPath); err != nil {
-			return err
-		}
 	} else {
 		// Handle hard link case
 		if fi.IsDir() {
@@ -89,7 +79,7 @@ func Add(path string, recursive bool, linkType string, fromRemote bool) error {
 				if info.IsDir() {
 					return nil
 				}
-				return addPathToTargets(p)
+				return addPathToTargets(p, baseDir, existing, &targets)
 			})
 			if err != nil {
 				return fmt.Errorf("failed to walk directory: %w", err)
@@ -99,7 +89,7 @@ func Add(path string, recursive bool, linkType string, fromRemote bool) error {
 			}
 		} else {
 			// Single file with hard links
-			if err := addPathToTargets(absPath); err != nil {
+			if err := addPathToTargets(absPath, baseDir, existing, &targets); err != nil {
 				return err
 			}
 		}
@@ -123,5 +113,17 @@ func Add(path string, recursive bool, linkType string, fromRemote bool) error {
 		return fmt.Errorf("failed to save configuration: %w", err)
 	}
 
+	return nil
+}
+
+// addPathToTargets adds a single path to the targets slice if it doesn't already exist
+func addPathToTargets(absPath, baseDir string, existing map[string]struct{}, targets *[]string) error {
+	relPath, err := filepath.Rel(baseDir, absPath)
+	if err != nil {
+		return fmt.Errorf("failed to get relative path: %w", err)
+	}
+	if _, ok := existing[relPath]; !ok {
+		*targets = append(*targets, relPath)
+	}
 	return nil
 }

@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"syscall"
 )
 
 type LinkStatus struct {
@@ -124,19 +125,50 @@ func checkLinkStatus(link Link, config *Config) LinkStatus {
 		status.IsLink = true
 
 	case LinkTypeHard:
-		// For hard links, we need to check if the file has the same inode as the target
-		// This is a simplified check - in a real implementation, you might want to
-		// compare inodes or use more sophisticated methods
-
 		// Check if the file exists and is not a directory
 		if info.IsDir() {
 			status.Error = "Hard links cannot be created for directories"
 			return status
 		}
 
-		// For hard links, we'll consider it valid if the file exists
-		// In a more robust implementation, you might want to check if it's actually
-		// a hard link to the expected target by comparing inodes
+		// Get the expected target path
+		expectedTarget := getExpectedTargetPath(link.Path, config)
+		if expectedTarget == "" {
+			status.Error = "Cannot determine expected target path"
+			return status
+		}
+
+		// Check if the target file exists
+		targetInfo, err := os.Stat(expectedTarget)
+		if os.IsNotExist(err) {
+			status.Error = "Target file does not exist"
+			return status
+		}
+		if err != nil {
+			status.Error = fmt.Sprintf("Cannot access target file: %v", err)
+			return status
+		}
+
+		// Check if both files have the same inode (hard link check)
+		if info.Sys() == nil || targetInfo.Sys() == nil {
+			status.Error = "Cannot get file system info for inode comparison"
+			return status
+		}
+
+		// Compare inodes to verify hard link
+		linkInode := getInode(info)
+		targetInode := getInode(targetInfo)
+
+		if linkInode == 0 || targetInode == 0 {
+			status.Error = "Cannot determine inode numbers"
+			return status
+		}
+
+		if linkInode != targetInode {
+			status.Error = "Not a hard link (different inodes)"
+			return status
+		}
+
 		status.IsLink = true
 	}
 
@@ -152,4 +184,11 @@ func getExpectedTargetPath(linkPath string, config *Config) string {
 
 	// Construct the expected target path in the remote directory
 	return filepath.Join(config.Remote, relPath)
+}
+
+func getInode(info os.FileInfo) uint64 {
+	if stat, ok := info.Sys().(*syscall.Stat_t); ok {
+		return stat.Ino
+	}
+	return 0
 }
