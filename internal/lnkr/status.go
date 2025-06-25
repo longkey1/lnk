@@ -9,11 +9,13 @@ import (
 )
 
 type LinkStatus struct {
-	Path   string
-	Type   string
-	Exists bool
-	IsLink bool
-	Error  string
+	Path       string
+	LocalPath  string
+	RemotePath string
+	Type       string
+	Exists     bool
+	IsLink     bool
+	Error      string
 }
 
 func Status() error {
@@ -34,12 +36,16 @@ func Status() error {
 	}
 
 	// Calculate max width for each column
-	maxPath := len("Path")
+	maxLocalPath := len("Local Path")
+	maxRemotePath := len("Remote Path")
 	maxType := len("Type")
 	maxStatus := len("Status")
 	for _, s := range statuses {
-		if len(s.Path) > maxPath {
-			maxPath = len(s.Path)
+		if len(s.LocalPath) > maxLocalPath {
+			maxLocalPath = len(s.LocalPath)
+		}
+		if len(s.RemotePath) > maxRemotePath {
+			maxRemotePath = len(s.RemotePath)
 		}
 		if len(s.Type) > maxType {
 			maxType = len(s.Type)
@@ -51,7 +57,7 @@ func Status() error {
 	}
 
 	// Print header
-	header := fmt.Sprintf("%-*s  %-*s  %-*s", maxPath, "Path", maxType, "Type", maxStatus, "Status")
+	header := fmt.Sprintf("%-*s  %-*s  %-*s  %-*s", maxLocalPath, "Local Path", maxRemotePath, "Remote Path", maxType, "Type", maxStatus, "Status")
 	sep := strings.Repeat("-", len(header))
 	fmt.Println(header)
 	fmt.Println(sep)
@@ -59,7 +65,7 @@ func Status() error {
 	// Print each status
 	for _, s := range statuses {
 		st := getStatusText(s)
-		fmt.Printf("%-*s  %-*s  %-*s\n", maxPath, s.Path, maxType, s.Type, maxStatus, st)
+		fmt.Printf("%-*s  %-*s  %-*s  %-*s\n", maxLocalPath, s.LocalPath, maxRemotePath, s.RemotePath, maxType, s.Type, maxStatus, st)
 	}
 
 	return nil
@@ -107,12 +113,12 @@ func checkLinkStatus(link Link, config *Config) LinkStatus {
 		return status
 	}
 
-	// Construct absolute paths for link and target
-	absLinkPath := filepath.Join(absLocal, link.Path)
-	absTargetPath := filepath.Join(absRemote, link.Path)
+	// Set the full paths
+	status.LocalPath = filepath.Join(absLocal, link.Path)
+	status.RemotePath = filepath.Join(absRemote, link.Path)
 
 	// Check if the link path exists
-	info, err := os.Stat(absLinkPath)
+	info, err := os.Stat(status.LocalPath)
 	if os.IsNotExist(err) {
 		status.Exists = false
 		status.Error = "LINK NOT FOUND"
@@ -130,7 +136,7 @@ func checkLinkStatus(link Link, config *Config) LinkStatus {
 		}
 
 		// Get the target of the symbolic link
-		target, err := os.Readlink(absLinkPath)
+		target, err := os.Readlink(status.LocalPath)
 		if err != nil {
 			status.Error = fmt.Sprintf("Cannot read link target: %v", err)
 			return status
@@ -143,8 +149,8 @@ func checkLinkStatus(link Link, config *Config) LinkStatus {
 		}
 
 		// Check if the target path is correct (should point to remote location)
-		if target != absTargetPath {
-			status.Error = fmt.Sprintf("Wrong target: %s (expected: %s)", target, absTargetPath)
+		if target != status.RemotePath {
+			status.Error = fmt.Sprintf("Wrong target: %s (expected: %s)", target, status.RemotePath)
 			return status
 		}
 
@@ -158,7 +164,7 @@ func checkLinkStatus(link Link, config *Config) LinkStatus {
 		}
 
 		// Check if the target file exists
-		targetInfo, err := os.Stat(absTargetPath)
+		targetInfo, err := os.Stat(status.RemotePath)
 		if os.IsNotExist(err) {
 			status.Error = "TARGET NOT FOUND"
 			return status
