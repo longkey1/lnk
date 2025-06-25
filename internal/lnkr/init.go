@@ -176,7 +176,6 @@ func addMultipleToGitExclude(entries []string) error {
 	}
 
 	// Add new section at the end
-	lines = append(lines, "")
 	lines = append(lines, GitExcludeSectionStart)
 	lines = append(lines, entries...)
 	lines = append(lines, GitExcludeSectionEnd)

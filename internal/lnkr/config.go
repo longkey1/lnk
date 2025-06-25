@@ -16,8 +16,8 @@ const GitExcludePath = ".git/info/exclude"
 
 // Git exclude section markers
 const (
-	GitExcludeSectionStart = "# LNKR"
-	GitExcludeSectionEnd   = "# LNKR END"
+	GitExcludeSectionStart = "### LNKR STA"
+	GitExcludeSectionEnd   = "### LNKR END"
 )
 
 // Link type constants
