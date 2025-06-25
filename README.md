@@ -24,6 +24,17 @@ You can download pre-built binaries from the [releases page](https://github.com/
 go install github.com/longkey1/lnkr@latest
 ```
 
+## Platform Support
+
+**Supported Platforms:**
+- Linux (AMD64, ARM64, ARMv6, ARMv7)
+- macOS (AMD64, ARM64)
+
+**Not Supported:**
+- Windows (not supported due to differences in file system implementation)
+
+**Note:** This tool is designed for Unix-like systems and relies on Unix-specific file system features for hard link detection.
+
 ## Usage
 
 ### Initialization

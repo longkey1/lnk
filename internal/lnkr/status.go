@@ -186,9 +186,16 @@ func getExpectedTargetPath(linkPath string, config *Config) string {
 	return filepath.Join(config.Remote, relPath)
 }
 
-func getInode(info os.FileInfo) uint64 {
-	if stat, ok := info.Sys().(*syscall.Stat_t); ok {
-		return stat.Ino
+func getInode(fileInfo os.FileInfo) uint64 {
+	sys := fileInfo.Sys()
+	if sys == nil {
+		return 0
 	}
-	return 0
+
+	switch sys := sys.(type) {
+	case *syscall.Stat_t:
+		return sys.Ino
+	default:
+		return 0
+	}
 }
