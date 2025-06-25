@@ -17,16 +17,8 @@ func CreateLinks(fromRemote bool) error {
 		return nil
 	}
 
-	// Choose base directory based on fromRemote flag
-	var baseDir string
-	if fromRemote {
-		baseDir = config.Remote
-	} else {
-		baseDir = config.Local
-	}
-
 	for _, link := range config.Links {
-		if err := createLinkWithBase(link, baseDir, fromRemote, config); err != nil {
+		if err := createLinkWithBase(link, fromRemote, config); err != nil {
 			fmt.Printf("Error creating link for %s: %v\n", link.Path, err)
 			continue
 		}
@@ -36,7 +28,7 @@ func CreateLinks(fromRemote bool) error {
 	return nil
 }
 
-func createLinkWithBase(link Link, baseDir string, fromRemote bool, config *Config) error {
+func createLinkWithBase(link Link, fromRemote bool, config *Config) error {
 	// Determine source and target directories based on fromRemote flag
 	var sourceDir, targetDir string
 	if fromRemote {
@@ -59,12 +51,6 @@ func createLinkWithBase(link Link, baseDir string, fromRemote bool, config *Conf
 		return fmt.Errorf("source path does not exist: %s", sourceAbs)
 	}
 
-	// Create target directory if it doesn't exist
-	targetParentDir := filepath.Dir(targetAbs)
-	if err := os.MkdirAll(targetParentDir, 0755); err != nil {
-		return fmt.Errorf("failed to create target directory: %w", err)
-	}
-
 	// Check if target already exists
 	if _, err := os.Stat(targetAbs); err == nil {
 		return fmt.Errorf("target already exists: %s", targetAbs)
@@ -73,20 +59,20 @@ func createLinkWithBase(link Link, baseDir string, fromRemote bool, config *Conf
 	switch link.Type {
 	case LinkTypeHard:
 		if sourceInfo.IsDir() {
-			// For directories, create the directory
-			if err := os.MkdirAll(targetAbs, sourceInfo.Mode()); err != nil {
-				return fmt.Errorf("failed to create directory: %w", err)
-			}
-			fmt.Printf("Created directory: %s\n", targetAbs)
+			return fmt.Errorf("hard links cannot be created for directories: %s", sourceAbs)
 		} else {
 			// For files, create hard link
+			targetParentDir := filepath.Dir(targetAbs)
+			if err := os.MkdirAll(targetParentDir, 0755); err != nil {
+				return fmt.Errorf("failed to create target directory: %w", err)
+			}
 			if err := os.Link(sourceAbs, targetAbs); err != nil {
 				return fmt.Errorf("failed to create hard link: %w", err)
 			}
 			fmt.Printf("Created hard link: %s -> %s\n", sourceAbs, targetAbs)
 		}
 	case LinkTypeSymbolic:
-		// Create symbolic link
+		// Create symbolic link (works for both files and directories)
 		if err := os.Symlink(sourceAbs, targetAbs); err != nil {
 			return fmt.Errorf("failed to create symbolic link: %w", err)
 		}

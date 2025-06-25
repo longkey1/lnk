@@ -8,6 +8,23 @@ init: ## Initialize the project
 	mkdir -p .devcontainer
 	cd .devcontainer && cat devcontainer.json.dist | envsubst '$${GO_VERSION} $${PRODUCT_NAME}' > devcontainer.json
 
+.PHONY: build
+build: ## Build the application
+	go build -o bin/lnkr .
+
+.PHONY: build-release
+build-release: ## Build the application with version information embedded
+	@if [ -z "$(BUILD_VERSION)" ]; then \
+		echo "Error: BUILD_VERSION is required. Usage: make build-release BUILD_VERSION=v1.0.0"; \
+		exit 1; \
+	fi
+	@echo "Building version $(BUILD_VERSION)..."
+	@COMMIT_SHA=$$(git rev-parse --short HEAD 2>/dev/null || echo "unknown"); \
+	BUILD_TIME=$$(date -u '+%Y-%m-%dT%H:%M:%SZ'); \
+	LDFLAGS="-X github.com/longkey1/lnkr/internal/version.Version=$(BUILD_VERSION) -X github.com/longkey1/lnkr/internal/version.CommitSHA=$$COMMIT_SHA -X github.com/longkey1/lnkr/internal/version.BuildTime=$$BUILD_TIME"; \
+	go build -ldflags "$$LDFLAGS" -o bin/lnkr-$(BUILD_VERSION) .
+	@echo "Built: bin/lnkr-$(BUILD_VERSION)"
+
 .PHONY: release
 
 # Get current version from git tag
