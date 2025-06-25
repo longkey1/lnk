@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/longkey1/lnk/internal/lnk"
+	"github.com/longkey1/lnkr/internal/lnk"
 	"github.com/spf13/cobra"
 )
 
@@ -15,8 +15,8 @@ var cleanCmd = &cobra.Command{
 	Long: `Clean up files and changes made by the init command.
 
 This command will:
-- Remove .lnk.toml configuration file if it exists
-- Remove .lnk.toml entry from .git/info/exclude`,
+- Remove .lnkr.toml configuration file if it exists
+- Remove .lnkr.toml entry from .git/info/exclude`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := lnk.Clean(); err != nil {
 			fmt.Fprintf(os.Stderr, "Error: %v\n", err)

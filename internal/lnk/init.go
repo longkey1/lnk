@@ -23,7 +23,7 @@ func Init(remote string, createRemote bool) error {
 	return nil
 }
 
-// createLnkTomlWithRemote creates the .lnk.toml file with remote if it doesn't exist
+// createLnkTomlWithRemote creates the .lnkr.toml file with remote if it doesn't exist
 func createLnkTomlWithRemote(remote string, createRemote bool) error {
 	filename := ConfigFileName
 
@@ -111,7 +111,7 @@ func createLnkTomlWithRemote(remote string, createRemote bool) error {
 	return nil
 }
 
-// addToGitExclude adds .lnk.toml to .git/info/exclude
+// addToGitExclude adds .lnkr.toml to .git/info/exclude
 func addToGitExclude() error {
 	excludePath := GitExcludePath
 	excludeDir := filepath.Dir(excludePath)
@@ -148,7 +148,7 @@ func addToGitExclude() error {
 	if _, err := file.WriteString("\n"); err != nil {
 		return err
 	}
-	marker := "# lnk configuration file"
+	marker := "# lnkr configuration file"
 	if _, err := file.WriteString(marker + "\n"); err != nil {
 		return err
 	}

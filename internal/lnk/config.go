@@ -9,7 +9,7 @@ import (
 )
 
 // Configuration file name constant
-const ConfigFileName = ".lnk.toml"
+const ConfigFileName = ".lnkr.toml"
 
 // Git exclude file path constant
 const GitExcludePath = ".git/info/exclude"

@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strconv"
 
-	"github.com/longkey1/lnk/internal/lnk"
+	"github.com/longkey1/lnkr/internal/lnk"
 	"github.com/spf13/cobra"
 )
 
@@ -22,8 +22,8 @@ var initCmd = &cobra.Command{
 	Long: `Initialize the project by creating necessary configuration files and setting up git exclusions.
 
 This command will:
-- Create .lnk.toml configuration file if it doesn't exist
-- Add .lnk.toml to .git/info/exclude to prevent it from being tracked`,
+- Create .lnkr.toml configuration file if it doesn't exist
+- Add .lnkr.toml to .git/info/exclude to prevent it from being tracked`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// Get current directory
 		currentDir, err := os.Getwd()
@@ -44,13 +44,13 @@ This command will:
 		// Get base directory for remote
 		baseDir := os.Getenv("LNK_REMOTE_ROOT")
 		if baseDir == "" {
-			// Default to $HOME/.config/lnk
+			// Default to $HOME/.config/lnkr
 			homeDir, err := os.UserHomeDir()
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "Error: failed to get home directory: %v\n", err)
 				os.Exit(1)
 			}
-			baseDir = filepath.Join(homeDir, ".config", "lnk")
+			baseDir = filepath.Join(homeDir, ".config", "lnkr")
 		}
 
 		// Get remote directory from flag or default
@@ -73,6 +73,6 @@ This command will:
 
 func init() {
 	rootCmd.AddCommand(initCmd)
-	initCmd.Flags().StringVarP(&remoteDir, "remote", "r", "", "Remote directory to save in .lnk.toml (if not specified, uses LNK_REMOTE_ROOT/project-name or parent-dir/current-dir based on LNK_REMOTE_DEPTH)")
+	initCmd.Flags().StringVarP(&remoteDir, "remote", "r", "", "Remote directory to save in .lnkr.toml (if not specified, uses LNK_REMOTE_ROOT/project-name or parent-dir/current-dir based on LNK_REMOTE_DEPTH)")
 	initCmd.Flags().BoolVar(&withCreateRemote, "with-create-remote", false, "Create remote directory if it does not exist")
 }

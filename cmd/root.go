@@ -4,19 +4,19 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/longkey1/lnk/internal/version"
+	"github.com/longkey1/lnkr/internal/version"
 	"github.com/spf13/cobra"
 )
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "lnk",
+	Use:   "lnkr",
 	Short: "A link helper CLI tool",
-	Long: `lnk is a command line tool for managing and working with links.
+	Long: `lnkr is a command line tool for managing and working with links.
 It provides various utilities for link manipulation, validation, and management.`,
 	Version: version.GetVersion(),
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("lnk - A Link helper")
+		fmt.Println("lnkr - A Link helper")
 		fmt.Println("Use --help for more information")
 	},
 }
@@ -34,5 +34,5 @@ func init() {
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
 
-	rootCmd.PersistentFlags().String("config", "", "config file (default is $HOME/.lnk.yaml)")
+	rootCmd.PersistentFlags().String("config", "", "config file (default is $HOME/.lnkr.yaml)")
 }

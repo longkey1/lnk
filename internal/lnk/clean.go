@@ -8,12 +8,12 @@ import (
 
 // Clean performs the cleanup tasks
 func Clean() error {
-	// Remove .lnk.toml file if it exists
+	// Remove .lnkr.toml file if it exists
 	if err := removeLnkToml(); err != nil {
 		return fmt.Errorf("failed to remove %s: %w", ConfigFileName, err)
 	}
 
-	// Remove .lnk.toml from .git/info/exclude
+	// Remove .lnkr.toml from .git/info/exclude
 	if err := removeFromGitExclude(); err != nil {
 		return fmt.Errorf("failed to remove from %s: %w", GitExcludePath, err)
 	}
@@ -22,7 +22,7 @@ func Clean() error {
 	return nil
 }
 
-// removeLnkToml removes the .lnk.toml file if it exists
+// removeLnkToml removes the .lnkr.toml file if it exists
 func removeLnkToml() error {
 	filename := ConfigFileName
 
@@ -41,7 +41,7 @@ func removeLnkToml() error {
 	return nil
 }
 
-// removeFromGitExclude removes .lnk.toml from .git/info/exclude
+// removeFromGitExclude removes .lnkr.toml from .git/info/exclude
 func removeFromGitExclude() error {
 	excludePath := GitExcludePath
 	entry := ConfigFileName

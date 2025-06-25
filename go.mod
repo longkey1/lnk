@@ -1,4 +1,4 @@
-module github.com/longkey1/lnk
+module github.com/longkey1/lnkr
 
 go 1.24.3
 

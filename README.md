@@ -1,49 +1,49 @@
-# lnk
+# lnkr
 
 A Link helper for managing hard links and symbolic links with configuration files.
 
 ## Overview
 
-`lnk` is a CLI tool that helps you manage links (hard links and symbolic links) using a configuration file. It allows you to define links in a `.lnk.toml` file and create/remove them as needed.
+`lnkr` is a CLI tool that helps you manage links (hard links and symbolic links) using a configuration file. It allows you to define links in a `.lnkr.toml` file and create/remove them as needed.
 
 ## Installation
 
 ### From Source
 
 ```bash
-go build -o lnk .
+go build -o lnkr .
 ```
 
 ### From Release
 
-You can download pre-built binaries from the [releases page](https://github.com/longkey1/lnk/releases).
+You can download pre-built binaries from the [releases page](https://github.com/longkey1/lnkr/releases).
 
 ### Using go install
 
 ```bash
-go install github.com/longkey1/lnk@latest
+go install github.com/longkey1/lnkr@latest
 ```
 
 ## Usage
 
 ### Initialization
 
-First, initialize your project with `lnk`:
+First, initialize your project with `lnkr`:
 
 ```bash
 # Basic initialization
-lnk init
+lnkr init
 
 # Initialize with remote directory
-lnk init --remote /path/to/remote/directory
+lnkr init --remote /path/to/remote/directory
 
 # Initialize with remote directory and create it if it doesn't exist
-lnk init --remote /path/to/remote/directory --create-remote
+lnkr init --remote /path/to/remote/directory --create-remote
 ```
 
 This will:
-- Create a `.lnk.toml` configuration file
-- Add `.lnk.toml` to `.git/info/exclude` to prevent it from being tracked
+- Create a `.lnkr.toml` configuration file
+- Add `.lnkr.toml` to `.git/info/exclude` to prevent it from being tracked
 
 **Remote Path Behavior:**
 
@@ -52,13 +52,13 @@ The `--remote` flag accepts both absolute and relative paths, and they behave di
 **Absolute Paths:**
 - When you specify an absolute path (e.g., `/backup/data`), it is used as-is
 - The path must exist unless `--create-remote` is specified
-- Example: `lnk init --remote /backup/project` → remote = `/backup/project`
+- Example: `lnkr init --remote /backup/project` → remote = `/backup/project`
 
 **Relative Paths:**
 - When you specify a relative path, it is resolved relative to the base directory
 - The base directory is determined by the `LNK_REMOTE_ROOT` environment variable
-- If `LNK_REMOTE_ROOT` is not set, it defaults to `$HOME/.config/lnk`
-- Example: `lnk init --remote myproject` with `LNK_REMOTE_ROOT=/backup` → remote = `/backup/myproject`
+- If `LNK_REMOTE_ROOT` is not set, it defaults to `$HOME/.config/lnkr`
+- Example: `lnkr init --remote myproject` with `LNK_REMOTE_ROOT=/backup` → remote = `/backup/myproject`
 
 **Default Remote Path (when --remote is not specified):**
 - Uses the `LNK_REMOTE_ROOT` environment variable as the base directory
@@ -78,19 +78,19 @@ Add files or directories to your link configuration:
 
 ```bash
 # Add a single file (hard link by default)
-lnk add /path/to/file.txt
+lnkr add /path/to/file.txt
 
 # Add a directory (requires --recursive for hard links)
-lnk add /path/to/directory --recursive
+lnkr add /path/to/directory --recursive
 
 # Add with symbolic link
-lnk add /path/to/file.txt --symbolic
+lnkr add /path/to/file.txt --symbolic
 
 # Add using source directory as base (relative paths)
-lnk add file.txt
+lnkr add file.txt
 
 # Add using remote directory as base (relative paths)
-lnk add file.txt --from-remote
+lnkr add file.txt --from-remote
 ```
 
 **Options:**
@@ -109,10 +109,10 @@ Create the actual links based on your configuration:
 
 ```bash
 # Create links using source directory as base
-lnk link
+lnkr link
 
 # Create links using remote directory as base
-lnk link --from-remote
+lnkr link --from-remote
 ```
 
 **Options:**
@@ -123,8 +123,8 @@ lnk link --from-remote
 Remove links from the filesystem:
 
 ```bash
-# Remove all links defined in .lnk.toml
-lnk unlink
+# Remove all links defined in .lnkr.toml
+lnkr unlink
 ```
 
 ### Removing from Configuration
@@ -133,7 +133,7 @@ Remove entries from the configuration file:
 
 ```bash
 # Remove a specific path and its subdirectories
-lnk remove /path/to/remove
+lnkr remove /path/to/remove
 ```
 
 ### Checking Status
@@ -142,7 +142,7 @@ Check the status of your links:
 
 ```bash
 # Show status of all configured links
-lnk status
+lnkr status
 ```
 
 ### Cleaning
@@ -150,11 +150,11 @@ lnk status
 Clean up the configuration:
 
 ```bash
-# Remove .lnk.toml and clean up git exclusions
-lnk clean
+# Remove .lnkr.toml and clean up git exclusions
+lnkr clean
 ```
 
-## Configuration File (.lnk.toml)
+## Configuration File (.lnkr.toml)
 
 The configuration file uses TOML format:
 
@@ -186,34 +186,34 @@ type = "symbolic"
 
 ```bash
 # 1. Initialize project
-lnk init --remote /backup/data
+lnkr init --remote /backup/data
 
 # 2. Add files to link
-lnk add important.txt
-lnk add config/ --recursive
+lnkr add important.txt
+lnkr add config/ --recursive
 
 # 3. Create the links
-lnk link
+lnkr link
 
 # 4. Check status
-lnk status
+lnkr status
 
 # 5. Remove links when done
-lnk unlink
+lnkr unlink
 ```
 
 ### Using Remote Directory
 
 ```bash
 # Initialize with remote directory
-lnk init --remote /backup/project
+lnkr init --remote /backup/project
 
 # Add files using remote as base
-lnk add /backup/project/file1.txt --from-remote
-lnk add /backup/project/subdir/ --recursive --from-remote
+lnkr add /backup/project/file1.txt --from-remote
+lnkr add /backup/project/subdir/ --recursive --from-remote
 
 # Create links using remote as base
-lnk link --from-remote
+lnkr link --from-remote
 ```
 
 ### Using Environment Variables
@@ -224,10 +224,10 @@ export LNK_REMOTE_ROOT="/backup"
 export LNK_REMOTE_DEPTH=2
 
 # Initialize (will use /backup/project-name)
-lnk init
+lnkr init
 
 # Or initialize with custom depth
-LNK_REMOTE_DEPTH=1 lnk init
+LNK_REMOTE_DEPTH=1 lnkr init
 ```
 
 ## Link Types

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/longkey1/lnk/internal/lnk"
+	"github.com/longkey1/lnkr/internal/lnk"
 	"github.com/spf13/cobra"
 )
 
@@ -15,7 +15,7 @@ var addCmd = &cobra.Command{
 	Long: `Add a link to the project configuration.
 
 This command will:
-- Add the specified path as a link in the .lnk.toml configuration
+- Add the specified path as a link in the .lnkr.toml configuration
 - If recursive flag is set, it will also add all subdirectories and files
 - Update the configuration file with the new link entries`,
 	Args: cobra.ExactArgs(1),

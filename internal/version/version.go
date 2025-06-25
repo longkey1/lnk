@@ -13,5 +13,5 @@ var (
 
 // GetVersion returns the version string
 func GetVersion() string {
-	return fmt.Sprintf("lnk version %s (commit: %s, built: %s)", Version, CommitSHA, BuildTime)
+	return fmt.Sprintf("lnkr version %s (commit: %s, built: %s)", Version, CommitSHA, BuildTime)
 }

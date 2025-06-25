@@ -1,7 +1,7 @@
 .DEFAULT_GOAL := help
 
 export GO_VERSION=$(shell if [ -f go.mod ]; then grep "^go " go.mod | sed 's/^go //'; else curl -s https://go.dev/dl/ | grep -o 'go[0-9]\+\.[0-9]\+' | head -1 | sed 's/go//'; fi)
-export PRODUCT_NAME := lnk
+export PRODUCT_NAME := lnkr
 
 .PHONY: init
 init: ## Initialize the project
