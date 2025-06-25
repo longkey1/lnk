@@ -22,6 +22,7 @@ func CreateLinks(fromRemote bool) error {
 			fmt.Printf("Error creating link for %s: %v\n", link.Path, err)
 			continue
 		}
+		// If err is nil, the link was either created successfully or skipped with a warning
 	}
 
 	fmt.Println("Link creation completed.")
@@ -53,7 +54,8 @@ func createLinkWithBase(link Link, fromRemote bool, config *Config) error {
 
 	// Check if target already exists
 	if _, err := os.Stat(targetAbs); err == nil {
-		return fmt.Errorf("target already exists: %s", targetAbs)
+		fmt.Printf("Warning: target already exists: %s\n", targetAbs)
+		return nil // Skip this link instead of returning error
 	}
 
 	switch link.Type {
