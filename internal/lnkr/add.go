@@ -58,27 +58,29 @@ func Add(path string, recursive bool, linkType string, fromRemote bool) error {
 
 	var targets []string
 
-	if recursive && fi.IsDir() {
+	if recursive && fi.IsDir() && linkType == LinkTypeHard {
 		err := filepath.Walk(absPath, func(p string, info os.FileInfo, err error) error {
 			if err != nil {
 				return err
 			}
+			// Skip directories, only add files for hard links
 			if info.IsDir() {
-				// Convert to relative path from base directory
-				relPath, err := filepath.Rel(baseDir, p)
-				if err != nil {
-					return fmt.Errorf("failed to get relative path: %w", err)
-				}
-				if _, ok := existing[relPath]; !ok {
-					targets = append(targets, relPath)
-				}
+				return nil
+			}
+			// Convert to relative path from base directory
+			relPath, err := filepath.Rel(baseDir, p)
+			if err != nil {
+				return fmt.Errorf("failed to get relative path: %w", err)
+			}
+			if _, ok := existing[relPath]; !ok {
+				targets = append(targets, relPath)
 			}
 			return nil
 		})
 		if err != nil {
 			return fmt.Errorf("failed to walk directory: %w", err)
 		}
-		if len(targets) == 0 || (len(targets) == 1 && targets[0] == path) {
+		if len(targets) == 0 {
 			return fmt.Errorf("no files or directories to add under the specified directory")
 		}
 	} else {
