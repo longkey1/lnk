@@ -177,6 +177,10 @@ func addMultipleToGitExclude(entries []string) error {
 		for i := sectionStart + 1; i < sectionEnd; i++ {
 			line := strings.TrimSpace(lines[i])
 			if line != "" && !strings.HasPrefix(line, "#") {
+				// Add / prefix if not already present
+				if !strings.HasPrefix(line, "/") {
+					line = "/" + line
+				}
 				existingEntries[line] = struct{}{}
 			}
 		}
@@ -184,6 +188,10 @@ func addMultipleToGitExclude(entries []string) error {
 
 	// Add new entries to existing ones
 	for _, entry := range entries {
+		// Add / prefix if not already present
+		if !strings.HasPrefix(entry, "/") {
+			entry = "/" + entry
+		}
 		existingEntries[entry] = struct{}{}
 	}
 
